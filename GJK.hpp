@@ -1,4 +1,4 @@
-#ifundef GJK_HPP
+#ifndef GJK_HPP
 
     #define GJK_HPP
 
@@ -8,6 +8,7 @@
 
     namespace GJK
     {
+        using GJK_Real = double;
         
         static int GJK_digits = 16;
         
