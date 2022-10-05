@@ -3,7 +3,7 @@
 #define CLASS MovingPolytope
 #define BASE  MovingPolytopeExt<AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>
 
-namespace namespace GJK
+namespace GJK
 {
     
     template<int POINT_COUNT, int AMB_DIM, typename Real, typename Int, typename SReal,

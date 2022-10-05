@@ -33,8 +33,8 @@ namespace GJK
     template<int AMB_DIM, typename Real_, typename Int_>
     class alignas( OBJECT_ALIGNMENT ) CLASS
     {
-        ASSERT_FLOAT(Real   );
-        ASSERT_INT  (Int    );
+        ASSERT_FLOAT(Real_);
+        ASSERT_INT  (Int_ );
 
     public:
         

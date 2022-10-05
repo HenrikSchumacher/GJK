@@ -15,9 +15,9 @@ namespace GJK
     template<int AMB_DIM, typename Real, typename Int, typename SReal >
     class CLASS : public BASE
     {
-        ASSERT_FLOAT(Real   );
-        ASSERT_INT  (Int    );
-        ASSERT_FLOAT(SReal  );
+        ASSERT_FLOAT(Real );
+        ASSERT_INT  (Int  );
+        ASSERT_FLOAT(SReal);
 
     protected:
         
@@ -36,7 +36,7 @@ namespace GJK
         
     public:
         
-        CLASS() = default
+        CLASS() = default;
         
         
         // Copy constructor

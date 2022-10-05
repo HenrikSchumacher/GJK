@@ -11,15 +11,15 @@ namespace GJK
     template<int AMB_DIM, typename Real_, typename Int_>
     class alignas( OBJECT_ALIGNMENT ) CLASS // Use this broad alignment to prevent false sharing.
     {
-        ASSERT_FLOAT(Real );
-        ASSERT_INT  (Int  );
+        ASSERT_FLOAT(Real_);
+        ASSERT_INT  (Int_ );
 
     public:
         
         using Real = Real_;
         using Int  = Int_;
         
-        CLASS() = default
+        CLASS() = default;
         
         virtual ~CLASS() = default;
         
