@@ -23,6 +23,11 @@ namespace GJK
         :   P( P_.Clone() )
         ,   Q( Q_.Clone() )
         {}
+        
+        CLASS( const CLASS & other )
+        :   P( other.P->Clone() )
+        ,   Q( other.Q->Clone() )
+        {}
       
     protected:
 
