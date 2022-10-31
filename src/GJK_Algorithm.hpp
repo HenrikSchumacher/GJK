@@ -49,6 +49,10 @@ namespace GJK
         
     protected:
         
+        static constexpr Int FACE_COUNT = face_count(AMB_DIM);
+        static constexpr Real zero      = static_cast<Real>(0);
+        static constexpr Real one       = static_cast<Real>(1);
+        
         Real coords [AMB_DIM+1][AMB_DIM  ] = {};  //  position of the corners of the simplex; only the first simplex_size rows are defined.
         Real P_supp [AMB_DIM+1][AMB_DIM  ] = {};  //  support points of the simplex in primitive P
         Real Q_supp [AMB_DIM+1][AMB_DIM  ] = {};  //  support points of the simplex in primitive Q
@@ -56,23 +60,23 @@ namespace GJK
         Real dots   [AMB_DIM+1][AMB_DIM+1] = {};  // simplex_size x simplex_size matrix of dots products of  the vectors coords[0],..., coords[simplex_size-1];
         Real Gram   [AMB_DIM  ][AMB_DIM  ] = {};  // Gram matrix of size = (simplex_size-1) x (simplex_size-1) of frame spanned by the vectors coords[i] - coords[simplex_size-1];
         
-        Real g      [AMB_DIM  ][AMB_DIM  ] = {}; // The local contiguous gram matrix for facets of size > 3.
+        Real g        [AMB_DIM  ][AMB_DIM  ] = {}; // The local contiguous gram matrix for facets of size > 3.
         Real v                   [AMB_DIM  ] = {}; // current direction vector (quite hot)
         Real p                   [AMB_DIM  ] = {}; // just a buffer for storing current support point of p.
         Real Lambda              [AMB_DIM+1] = {}; // For the right hand sides of the linear equations to solve in DistanceSubalgorithm.
         Real best_lambda         [AMB_DIM+1] = {};
         Real facet_closest_point [AMB_DIM  ] = {};
         
-        Int facet_sizes    [face_count(AMB_DIM)] = {};
-        Int facet_vertices [face_count(AMB_DIM)][AMB_DIM+1] = {};
-        Int facet_faces    [face_count(AMB_DIM)][AMB_DIM+1] = {};
-        bool visited       [face_count(AMB_DIM)] = {};
+        Int facet_sizes    [FACE_COUNT] = {};
+        Int facet_vertices [FACE_COUNT][AMB_DIM+1] = {};
+        Int facet_faces    [FACE_COUNT][AMB_DIM+1] = {};
+        bool visited       [FACE_COUNT] = {};
         
-        Real dotvv = std::numeric_limits<Real>::max();
-        Real olddotvv = std::numeric_limits<Real>::max();
-        Real dotvw = static_cast<Real>(0);
-        Real TOL_squared = static_cast<Real>(0);
-        Real theta_squared = static_cast<Real>(1);
+        Real dotvv         = std::numeric_limits<Real>::max();
+        Real olddotvv      = std::numeric_limits<Real>::max();
+        Real dotvw         = zero;
+        Real TOL_squared   = zero;
+        Real theta_squared = one;
         
         Int simplex_size = 0; //  index of last added point
         Int closest_facet;
@@ -91,12 +95,12 @@ namespace GJK
             // Initializing facet_sizes, facet_vertices, and facet_faces.
             // TODO: In principle, the compiler should be possible to populate those at compile time. Dunno how to work this black magic.
 
-            for( Int facet = 0; facet < face_count(AMB_DIM); ++ facet)
+            for( Int facet = 0; facet < FACE_COUNT; ++ facet)
             {
                 Int i = 0;
                 
                 Int * restrict const vertices = facet_vertices[facet];
-                Int * restrict const faces = facet_faces[facet];
+                Int * restrict const faces    = facet_faces[facet];
 
                 for( Int vertex = 0; vertex < AMB_DIM+1; ++vertex )
                 {
@@ -178,15 +182,11 @@ namespace GJK
 
             for( Int i = 0; i < simplex_size+1; ++i )
             {
-                      Real * restrict const d_i = dots[i];
-                const Real * restrict const c_i = coords[i];
-                const Real * restrict const c_last = coords[simplex_size];
-                
-                d_i[simplex_size] = c_i[0] * c_last[0];
+                dots[i][simplex_size] = coords[i][0] * coords[simplex_size][0];
 
                 for( Int k = 1; k < AMB_DIM; ++k )
                 {
-                    d_i[simplex_size] += c_i[k] * c_last[k];
+                    dots[i][simplex_size] += coords[i][k] * coords[simplex_size][k];
                 }
             }
             
@@ -197,23 +197,18 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::Compute_Gram");
             
-            Real dots_last_last = dots[simplex_size][simplex_size];
-            
             for( Int i = 0; i < simplex_size; ++i )
             {
-                const Real * restrict const d_i = dots[i];
-                      Real * restrict const G_i = Gram[i];
-
-                const Real R1 = d_i[simplex_size];
-                const Real R2 = dots_last_last - R1;
+                const Real R1 = dots[i][simplex_size];
+                const Real R2 = dots[simplex_size][simplex_size] - R1;
 
                 Lambda[i] = R2;
 
-                G_i[i] = d_i[i] + R2 - R1;
+                Gram[i][i] = dots[i][i] + R2 - R1;
 
                 // This is to guarantee that the current facet has full rank.
                 // If g is not of full rank, then most recently added point (w) was already contained in the old simplex. (If another point were a problem, then  the code below would have aborted already the previous GJK iteration.
-                if( G_i[i] <= 0 )
+                if( Gram[i][i] <= 0 )
                 {
                     GJK_toc(ClassName()+"::Compute_Gram");
                     return 1;
@@ -221,27 +216,8 @@ namespace GJK
 
                 for( Int j = i+1; j < simplex_size; ++j )
                 {
-                    G_i[j] = d_i[j] - dots[j][simplex_size] + R2;
+                    Gram[i][j] = dots[i][j] - dots[j][simplex_size] + R2;
                 }
-                
-//                const Real R1 = dots[i][simplex_size];
-//                const Real R2 = dots_last_last - R1;
-//
-//                Lambda[i] = R2;
-//
-//                Gram[i][i] = dots[i][i] + R2 - R1;
-//
-//                // This is to guarantee that the current facet has full rank.
-//                // If g is not of full rank, then most recently added point (w) was already contained in the old simplex. (If another point were a problem, then  the code below would have aborted already the previous GJK iteration.
-//                if( Gram[i][i] <= 0 )
-//                {
-//                    return 1;
-//                }
-//
-//                for( Int j = i+1; j < simplex_size; ++j )
-//                {
-//                    Gram[i][j] = dots[i][j] - dots[j][simplex_size] + R2;
-//                }
             }
             
             GJK_toc(ClassName()+"::Compute_Gram");
@@ -251,14 +227,10 @@ namespace GJK
         int Push()
         {
             GJK_tic(ClassName()+"::Push");
-            const Real * restrict const p__ = P_supp[simplex_size];
-            const Real * restrict const q__ = Q_supp[simplex_size];
-                  Real * restrict const c__ = coords[simplex_size];
-            
+
             for( Int k = 0; k < AMB_DIM; ++k)
             {
-                c__[k] = p__[k] - q__[k];
-//                coords[simplex_size][k] = P_supp[simplex_size][k]-Q_supp[simplex_size][k];
+                coords[simplex_size][k] = P_supp[simplex_size][k] - Q_supp[simplex_size][k];
             }
 
             Compute_dots();
@@ -277,16 +249,9 @@ namespace GJK
             GJK_tic(ClassName()+"::PrepareDistanceSubalgorithm");
 
             // Compute starting facet.
-            Int facet = 1;
-            
             const Int end = simplex_size;
+            Int facet = (static_cast<Int>(1) << end) - static_cast<Int>(1) ;
             
-            for( Int k = 0; k < end; ++k )
-            {
-                facet *= 2;
-            }
-            --facet;
-
             closest_facet = facet;
             olddotvv = dotvv;
             
@@ -320,7 +285,7 @@ namespace GJK
             
             const Int facet_size = facet_sizes[facet];
             const Int * restrict const vertices = facet_vertices[facet];
-            const Int * restrict const faces = facet_faces[facet];
+            const Int * restrict const faces    = facet_faces   [facet];
             
             Real lambda [AMB_DIM+1] = {}; // The local contiguous version of Lambda for facets of size > 3.
 
@@ -358,9 +323,6 @@ namespace GJK
                 
             const Int i_last = vertices[last];
             
-            const Real dots_i_last_i_last = dots[i_last][i_last];
-            
-//            Int switch_expr = facet_size <= AMB_DIM+1 ? facet_size :
             // Compute lambdas.
             switch( facet_size )
             {
@@ -370,16 +332,13 @@ namespace GJK
 //                }
                 case 1:
                 {
-                    if( dots_i_last_i_last < dotvv )
+                    if( dots[i_last][i_last] < dotvv )
                     {
-                        closest_facet = facet;
-                        dotvv = dots_i_last_i_last;
-                        best_lambda[last] = static_cast<Real>(1);
-                        const Real * restrict const c = coords[i_last];
-                            for( Int k = 0; k < AMB_DIM; ++k )
-                        {
-                            v[k] = c[k];
-                        }
+                        closest_facet     = facet;
+                        dotvv             = dots[i_last][i_last];
+                        best_lambda[last] = one;
+
+                        copy_buffer( &coords[i_last][0], &v[0], AMB_DIM);
                     }
                     GJK_toc(ClassName()+"::DistanceSubalgorithm");
                     
@@ -393,7 +352,7 @@ namespace GJK
                     const Int i_0 = vertices[0];
 
                     lambda[0] = Lambda[i_0] / Gram[i_0][i_0];
-                    lambda[1] = static_cast<Real>(1) - lambda[0];
+                    lambda[1] = one - lambda[0];
 
                     interior = (lambda[0] > eps) && (lambda[1] > eps);
 
@@ -408,15 +367,12 @@ namespace GJK
                     const Int i_0 = vertices[0];
                     const Int i_1 = vertices[1];
 
-                    const Real * restrict const G_i_0 = Gram[i_0];
-                    const Real * restrict const G_i_1 = Gram[i_1];
-
                     // Using Cramer's rule to solve the linear system.
-                    const Real inv_det = static_cast<Real>(1) / ( G_i_0[i_0] * G_i_1[i_1] - G_i_0[i_1] * G_i_0[i_1] );
+                    const Real inv_det = one / ( Gram[i_0][i_0] * Gram[i_1][i_1] - Gram[i_0][i_1] * Gram[i_0][i_1] );
 
-                    lambda[0] = ( G_i_1[i_1] * Lambda[i_0] - G_i_0[i_1] * Lambda[i_1] ) * inv_det;
-                    lambda[1] = ( G_i_0[i_0] * Lambda[i_1] - G_i_0[i_1] * Lambda[i_0] ) * inv_det;
-                    lambda[2] = static_cast<Real>(1) - lambda[0] - lambda[1];
+                    lambda[0] = ( Gram[i_1][i_1] * Lambda[i_0] - Gram[i_0][i_1] * Lambda[i_1] ) * inv_det;
+                    lambda[1] = ( Gram[i_0][i_0] * Lambda[i_1] - Gram[i_0][i_1] * Lambda[i_0] ) * inv_det;
+                    lambda[2] = one - lambda[0] - lambda[1];
 
                     // Check the barycentric coordinates for positivity ( and compute the 0-th coordinate).
                     interior = (lambda[0] > eps) && (lambda[1] > eps) && (lambda[2] > eps);
@@ -447,12 +403,12 @@ namespace GJK
 //                    const Real G12 = G_i_0[i_1] * G_i_0[i_2] - G_i_0[i_0] * G_i_1[i_2];
 //                    const Real G22 = G_i_0[i_0] * G_i_1[i_1] - G_i_0[i_1] * G_i_0[i_1];
 //
-//                    const Real det_inv = static_cast<Real>(1) / (G_i_0[i_0] * G00 + G_i_0[i_1] * G01 + G_i_0[i_2] * G02);
+//                    const Real det_inv = one / (G_i_0[i_0] * G00 + G_i_0[i_1] * G01 + G_i_0[i_2] * G02);
 //
 //                    lambda[0] = ( G00 * Lambda[i_0] + G01 * Lambda[i_1] + G02 * Lambda[i_2] ) * det_inv;
 //                    lambda[1] = ( G01 * Lambda[i_0] + G11 * Lambda[i_1] + G12 * Lambda[i_2] ) * det_inv;
 //                    lambda[2] = ( G02 * Lambda[i_0] + G12 * Lambda[i_1] + G22 * Lambda[i_2] ) * det_inv;
-//                    lambda[3] = static_cast<Real>(1) - lambda[0] - lambda[1] - lambda[2];
+//                    lambda[3] = one - lambda[0] - lambda[1] - lambda[2];
 //
 //                    // Check the barycentric coordinates for positivity ( and compute the 0-th coordinate).
 //                    interior = (lambda[0] > eps) && (lambda[1] > eps) && (lambda[2] > eps) && (lambda[3] > eps);
@@ -470,17 +426,14 @@ namespace GJK
                     {
                         const Int i_i = vertices[i];
                         
-                        const Real * restrict const G_i_i = Gram[i_i];
-                              Real * restrict const g_i   = g[i];
-                        
                         lambda[i] = Lambda[i_i];
                         
-                        g_i[i] = G_i_i[i_i];
+                        g[i][i] = Gram[i_i][i_i];
                         
                         for( Int j = i+1; j < last; ++j )
                         {
                             Int j_j = vertices[j];
-                            g[j][i] = g_i[j] = G_i_i[j_j];
+                            g[j][i] = g[i][j] = Gram[i_i][j_j];
                         }
                     }
                     
@@ -498,10 +451,8 @@ namespace GJK
                     // Cholesky decomposition
                     for( Int k = 0; k < last; ++k )
                     {
-                        Real * restrict const g_k = g[k];
-
-                        const Real a = g_k[k] = sqrt(g_k[k]);
-                        const Real ainv = static_cast<Real>(1)/a;
+                        const Real a = g[k][k] = sqrt(g[k][k]);
+                        const Real ainv = one/a;
 
                         for( Int j = k+1; j < last; ++j )
                         {
@@ -510,11 +461,9 @@ namespace GJK
 
                         for( Int i = k+1; i < last; ++i )
                         {
-                            Real * restrict const g_i = g[i];
-
                             for( Int j = i; j < last; ++j )
                             {
-                                g_i[j] -= g_k[i] * g_k[j];
+                                g[i][j] -= g[k][i] * g[k][j];
                             }
                         }
                     }
@@ -530,20 +479,18 @@ namespace GJK
                     }
 
                     // Upper triangular back substitution
-                    for( Int i = last-1; i > -1; --i )
+                    for( Int i = last; i --> 0; )
                     {
-                        Real * restrict const g_i = g[i];
-
                         for( Int j = i+1; j < last; ++j )
                         {
-                            lambda[i] -= g_i[j] * lambda[j];
+                            lambda[i] -= g[i][j] * lambda[j];
                         }
-                        lambda[i] /= g_i[i];
+                        lambda[i] /= g[i][i];
                     }
                     
                     // Check the barycentric coordinates for positivity ( and compute the 0-th coordinate).
 
-                    lambda[last] = static_cast<Real>(1);
+                    lambda[last] = one;
                     
                     for( Int k = 0; k < last; ++k)
                     {
@@ -566,16 +513,18 @@ namespace GJK
                     visited[ faces[j] ] = true;
                 }
                 
-                Real facet_squared_dist = static_cast<Real>(0);
+                Real facet_squared_dist = zero;
                 
                 // Computing facet_closest_point.
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
                     Real x = lambda[0] * coords[ vertices[0] ][ k ];
+                    
                     for( Int j = 1; j < facet_size; ++j )
                     {
                         x += lambda[j] * coords[ vertices[j] ][ k ];
                     }
+                    
                     facet_squared_dist += x * x;
                     facet_closest_point[k] = x;
                 }
@@ -584,14 +533,8 @@ namespace GJK
                 {
                     closest_facet = facet;
                     dotvv = facet_squared_dist;
-                    for( Int k = 0; k < AMB_DIM; ++k )
-                    {
-                        v[k] = facet_closest_point[k];
-                    }
-                    for( Int k = 0; k < AMB_DIM+1; ++k )
-                    {
-                        best_lambda[k] = lambda[k];
-                    }
+                    copy_buffer( &facet_closest_point[0], &v[0], AMB_DIM);
+                    copy_buffer( &lambda[0], &best_lambda[0], AMB_DIM+1);
                 }
             }
             else
@@ -636,8 +579,8 @@ namespace GJK
             const bool collision_only  = false,
             // If this is set to true, the algorithm will abort once a separating direction is found.
             const bool reuse_direction = false,
-            const Real TOL_squared_    = static_cast<Real>(0),
-            const Real theta_squared_  = static_cast<Real>(1)
+            const Real TOL_squared_    = zero,
+            const Real theta_squared_  = one
         )
         {
             GJK_tic(ClassName()+"::Compute");
@@ -650,7 +593,7 @@ namespace GJK
 
             theta_squared = theta_squared_;
 
-            if( TOL_squared_ > static_cast<Real>(0) )
+            if( TOL_squared_ > zero )
             {
                 TOL_squared = TOL_squared_;
             }
@@ -658,15 +601,15 @@ namespace GJK
             {
                 GJK_print("Setting TOL_squared to "+ToString(eps)+" times minimum radius of primitives.");
                 TOL_squared = eps * std::min( P.SquaredRadius(), Q.SquaredRadius() );
-                if( TOL_squared <= static_cast<Real>(0) )
+                if( TOL_squared <= zero )
                 {
                     GJK_print("Setting TOL_squared to "+ToString(eps)+" times maximum radius of primitives.");
                     TOL_squared = eps * std::max( P.SquaredRadius(), Q.SquaredRadius() );
                     
-                    if( TOL_squared <= static_cast<Real>(0) )
+                    if( TOL_squared <= zero )
                     {
                         dotvv = InteriorPoints_SquaredDistance(P,Q);
-                        separatedQ = dotvv > static_cast<Real>(0);
+                        separatedQ = dotvv > zero;
                         
 //                            wprint(ClassName()+"::Compute: Both primitives have nonpositive bounding radius: first radius = "+ToString(P.SquaredRadius())+", second radius = "+ToString(Q.SquaredRadius())+".");
 //                            DUMP(omp_get_thread_num());
@@ -715,12 +658,9 @@ namespace GJK
             
             closest_facet = 1;
             dotvv = dots[0][0];
-            best_lambda[0] = static_cast<Real>(1);
+            best_lambda[0] = one;
 
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                v[k] = coords[0][k];
-            }
+            copy_buffer( &coords[0][0], v, AMB_DIM);
         
             while( true )
             {
@@ -753,7 +693,7 @@ namespace GJK
                 b = Q.MaxSupportVector( &v[0], &Q_supp[simplex_size][0] );
                 dotvw = a-b;
             
-                if( collision_only && (dotvw > static_cast<Real>(0)) && (theta_squared * dotvw * dotvw > TOL_squared) )
+                if( collision_only && (dotvw > zero) && (theta_squared * dotvw * dotvw > TOL_squared) )
                 {
                     GJK_print("Stopped because separating plane was found. ");
                     separatedQ = true;
@@ -803,25 +743,12 @@ namespace GJK
                 {
                     const Int i_i = vertices[i];
                     
-                          Real * restrict const c_i   = coords[i];
-                    const Real * restrict const c_i_i = coords[i_i];
-                          Real * restrict const d_i   = dots[i];
-                    const Real * restrict const d_i_i = dots[i_i];
-//                    Real * restrict const p_i   = P_supp[i];
-//                    Real * restrict const p_i_i = P_supp[i_i];
-                          Real * restrict const q_i   = Q_supp[i];
-                    const Real * restrict const q_i_i = Q_supp[i_i];
-                    
-                    for( Int k = 0; k < AMB_DIM; ++k )
-                    {
-                        c_i[k] = c_i_i[k];
-//                        p_i[k] = p_i_i[k];
-                        q_i[k] = q_i_i[k];
-                    }
+                    copy_buffer( &coords[i_i][0], &coords[i][0], AMB_DIM );
+                    copy_buffer( &Q_supp[i_i][0], &Q_supp[i][0], AMB_DIM );
 
                     for( Int j = i; j < simplex_size; ++j )
                     {
-                        d_i[j] = d_i_i[vertices[j]];
+                        dots[i][j] = dots[i_i][vertices[j]];
                     }
                 }
 
@@ -906,11 +833,11 @@ namespace GJK
         bool IntersectingQ(
             const PrimitiveBase_T & P,
             const PrimitiveBase_T & Q,
-            const Real theta_squared_ = static_cast<Real>(1),
+            const Real theta_squared_ = one,
             const bool reuse_direction_ = false
         )
         {
-            Compute(P, Q, true, reuse_direction_, static_cast<Real>(0), theta_squared_ );
+            Compute(P, Q, true, reuse_direction_, zero, theta_squared_ );
             
             return !separatedQ;
         } // IntersectingQ
@@ -923,7 +850,7 @@ namespace GJK
             const Real theta_squared_
         )
         {
-            return AABB_SquaredDistance( P, Q ) <= static_cast<Real>(0);
+            return AABB_SquaredDistance( P, Q ) <= zero;
         } // IntersectingQ
         
         // ################################################################
@@ -936,7 +863,7 @@ namespace GJK
             const bool reuse_direction_ = false
         )
         {
-            Compute(P, Q, false, reuse_direction_, static_cast<Real>(0) );
+            Compute(P, Q, false, reuse_direction_, zero );
             
             return dotvv;
         } // SquaredDistance
@@ -962,7 +889,7 @@ namespace GJK
             const bool reuse_direction_ = false
         )
         {
-            Compute(P, Q, false, reuse_direction_, static_cast<Real>(0) );
+            Compute(P, Q, false, reuse_direction_, zero );
 
             for( Int k = 0; k < AMB_DIM; ++ k)
             {
@@ -989,7 +916,7 @@ namespace GJK
                 {
                     for( Int j = 1; j < 3; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
 //                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
@@ -1001,7 +928,7 @@ namespace GJK
                 {
                     for( Int j = 1; j < 4; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
 //                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
@@ -1013,7 +940,7 @@ namespace GJK
                 {
                     for( Int j = 1; j < 5; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
 //                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
@@ -1026,7 +953,7 @@ namespace GJK
                     // TODO: Could also be done by BLAS...
                     for( Int j = 1; j < simplex_size; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
 //                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
@@ -1074,7 +1001,7 @@ namespace GJK
             
             Compute(P, Q, false, reuse_direction_, min_dist * min_dist );
             
-            const Real dist = std::max( static_cast<Real>(0), sqrt(dotvv) - P_offset - Q_offset );
+            const Real dist = std::max( zero, sqrt(dotvv) - P_offset - Q_offset );
             
             return dist * dist;
         } // SquaredDistance
@@ -1099,7 +1026,7 @@ namespace GJK
                   Real x_scale;
                   Real y_scale;
             
-            if( dist > static_cast<Real>(0) )
+            if( dist > zero )
             {
                 // If no intersection was detected, we have to set the witnesses onto the bounday of the thickened primitives.
 
@@ -1115,11 +1042,11 @@ namespace GJK
             else
             {
                 // If an intersection was deteced, we just return the witnesses.
-                dist = static_cast<Real>(0);
+                dist = zero;
                 // We want y = y_0 + y_scale * v, where y_0 is constructed from Q_supp by barycentric coordinates
-                y_scale = static_cast<Real>(0);
+                y_scale = zero;
                 // We want x = y + x_scale * v.
-                x_scale = static_cast<Real>(1);
+                x_scale = one;
                 
             }
 
