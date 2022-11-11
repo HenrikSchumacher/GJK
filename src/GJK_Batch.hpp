@@ -10,7 +10,7 @@ namespace GJK
         const PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P_, // prototype primitive
         SReal * const P_serialized_data,               // matrix of size n x P_.Size()
         const PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & Q_, // prototype primitive
-        SReal * const Q_serialized_data,               // matrix of size n x P_.Size()
+        SReal * const Q_serialized_data,               // matrix of size n x Q_.Size()
         Int * const intersectingQ                    // vector of size n for storing the results
     )
     {
