@@ -891,7 +891,7 @@ namespace GJK
         {
             Compute(P, Q, false, reuse_direction_, zero );
 
-            for( Int k = 0; k < AMB_DIM; ++ k)
+            for( Int k = 0; k < AMB_DIM; ++k )
             {
 //                x[k] = best_lambda[0] * P_supp[0][k];
                 y[k] = best_lambda[0] * Q_supp[0][k];
@@ -905,7 +905,7 @@ namespace GJK
                 }
                 case 2:
                 {
-                    for( Int k = 0; k < AMB_DIM; ++ k)
+                    for( Int k = 0; k < AMB_DIM; ++k )
                     {
 //                        x[k] += best_lambda[1] * P_supp[1][k];
                         y[k] += best_lambda[1] * Q_supp[1][k];
@@ -962,7 +962,7 @@ namespace GJK
                 }
             }
             
-            for( Int k = 0; k < AMB_DIM; ++ k)
+            for( Int k = 0; k < AMB_DIM; ++k )
             {
                 x[k] = y[k] + v[k];
             }
@@ -1121,7 +1121,7 @@ namespace GJK
                 }
             }
             
-            for( Int k = 0; k < AMB_DIM; ++ k)
+            for( Int k = 0; k < AMB_DIM; ++k )
             {
                 x[k] = y[k] + x_scale * v[k];
             }
@@ -1145,7 +1145,7 @@ namespace GJK
             Real diff = coords[1][0] - coords[0][0];
             Real r2   = diff * diff;
             
-            for( Int k = 1; k < AMB_DIM; ++ k)
+            for( Int k = 1; k < AMB_DIM; ++k )
             {
                 diff = coords[1][k] - coords[0][k];
                 r2  += diff * diff;
