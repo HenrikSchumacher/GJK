@@ -131,8 +131,8 @@ namespace GJK
                     perm [i] = i;
                 }
 
-                Int  * mid = perm + split_index;
-                std::nth_element( perm + begin, mid, perm + end,
+                Int  * mid_ = perm + split_index;
+                std::nth_element( perm + begin, mid_, perm + end,
                         [score](const Int i, const Int j) {return score[i] < score[j];}
                 );
                 // Now perm contains the desired ordering of score.
