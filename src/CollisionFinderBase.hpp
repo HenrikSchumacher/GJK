@@ -5,13 +5,12 @@
 namespace GJK
 {
     
-    template <typename Real, typename Int, typename SReal, typename ExtReal>
+    template <typename Real, typename Int, typename SReal>
     class alignas( OBJECT_ALIGNMENT ) CLASS
     {
         ASSERT_FLOAT(Real);
         ASSERT_INT  (Int     );
         ASSERT_FLOAT(SReal   );
-        ASSERT_FLOAT(ExtReal );
         
     public:
         
@@ -23,7 +22,7 @@ namespace GJK
 
     public:
         
-        virtual ExtReal FindMaximumSafeStepSize(
+        virtual SReal FindMaximumSafeStepSize(
             const SReal * p, const SReal * u,
             const SReal * q, const SReal * v,
             const SReal tinit
@@ -33,7 +32,7 @@ namespace GJK
         
         std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<Real>::Get()+","+TypeName<Int>::Get()+","+TypeName<SReal>::Get()+","+TypeName<ExtReal>::Get()+","+">";
+            return TO_STD_STRING(CLASS)+"<"+TypeName<Real>::Get()+","+TypeName<Int>::Get()+","+TypeName<SReal>::Get()+","+">";
         }
     };
     
