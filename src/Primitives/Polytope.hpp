@@ -16,7 +16,7 @@ namespace GJK
         
     protected:
         
-        // this->serialized_data is assumed to be an array of size Size(). Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
+        // this->serialized_data is assumed to be an array of size SIZE. Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
         
         // DATA LAYOUT
         // serialized_data[0] = squared radius
@@ -35,19 +35,21 @@ namespace GJK
 
         virtual ~CLASS() override = default;
         
-        Int Size() const override
+        static constexpr Int SIZE = 1 + AMB_DIM + POINT_COUNT * AMB_DIM;
+        
+        virtual constexpr Int Size() const override
         {
-            return 1 + AMB_DIM + POINT_COUNT * AMB_DIM;
+            return SIZE;
         }
         
-        Int PointCount() const override
+        virtual constexpr Int PointCount() const override
         {
             return POINT_COUNT;
         }
-
+        
     protected:
 
-        mutable SReal self_buffer [1 + AMB_DIM + POINT_COUNT * AMB_DIM];
+        mutable SReal self_buffer [SIZE];
         
 #include "Primitive_BoilerPlate.hpp"
         
@@ -111,7 +113,7 @@ namespace GJK
             
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
-                copy_cast_buffer( &coords_[AMB_DIM * s[j]], &hull_coords[AMB_DIM * j], AMB_DIM );
+                copy_cast_buffer<AMB_DIM>( &coords_[AMB_DIM * s[j]], &hull_coords[AMB_DIM * j] );
             }
             
             // Compute average.
@@ -298,25 +300,6 @@ namespace GJK
             
 //            ptoc(ClassName()+"::BoxMinMax");
         }
-        
-        void PrintStats() const
-        {
-            print(ClassName()+"::PrintStats():");
-            
-            std::stringstream s;
-            
-            s << "serialized_data = { " << this->serialized_data[0];
-            
-            for( Int i = 1; i < Size(); ++ i )
-            {
-                s << ", " << this->serialized_data[i];
-            }
-        
-            s <<" }";
-            
-            print(s.str());
-        }
-        
         
         virtual std::string ClassName() const override
         {

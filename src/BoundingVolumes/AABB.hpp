@@ -5,7 +5,7 @@
 
 namespace GJK
 {
-    // serialized_data is assumed to be an array of size Size(). Will never be allocated by class! Instead, it is meant to be mapped onto an array of type SReal by calling the member SetPointer.
+    // serialized_data is assumed to be an array of size SIZE. Will never be allocated by class! Instead, it is meant to be mapped onto an array of type SReal by calling the member SetPointer.
     
     // DATA LAYOUT
     // serialized_data[0] = squared radius
@@ -57,9 +57,12 @@ namespace GJK
         
         virtual ~CLASS() override = default;
         
-        Int Size() const override
+        
+        static constexpr Int SIZE = 1 + AMB_DIM + AMB_DIM;
+        
+        virtual constexpr Int Size() const override
         {
-            return 1 + AMB_DIM + AMB_DIM;
+            return SIZE;
         }
         
     protected:
@@ -86,9 +89,6 @@ namespace GJK
                   SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
             
             const SReal * restrict const coords = coords_in;
-            
-            
-//            valprint("Size()",Size());
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -188,8 +188,6 @@ namespace GJK
             // Abusing serialized_data temporily as working space.
                   SReal * restrict const box_min = serialized_data + 1;
                   SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
-            
-//            valprint("Size()",Size());
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -322,7 +320,7 @@ namespace GJK
         
         void Merge( SReal * C_Serialized, const Int i = 0 ) const
         {
-            SReal * p = C_Serialized + Size() * i;
+            SReal * p = C_Serialized + SIZE * i;
             
             if( serialized_data != p )
             {

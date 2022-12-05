@@ -16,12 +16,12 @@ namespace GJK
         
     protected:
         
-        // serialized_data is assumed to be an array of size Size(). Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
+        // serialized_data is assumed to be an array of size SIZE. Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
         
         // DATA LAYOUT
         // serialized_data[0] = squared radius
         // serialized_data[1],...,serialized_data[AMB_DIM] = interior_point
-        // serialized_data[1+ AMB_DIM],...,serialized_data[Size()] = data that defines the primitive.
+        // serialized_data[1+ AMB_DIM],...,serialized_data[SIZE] = data that defines the primitive.
         
     public:
         

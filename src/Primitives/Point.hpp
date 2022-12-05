@@ -16,7 +16,7 @@ namespace GJK
         
     protected:
         
-        // serialized_data is assumed to be an array of size Size(). Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
+        // serialized_data is assumed to be an array of size SIZE. Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
         
         // DATA LAYOUT
         // serialized_data[0] = squared radius = 0
@@ -34,14 +34,16 @@ namespace GJK
 
         virtual ~CLASS() override = default;
         
-        Int Size() const override
+        static constexpr Int SIZE = 1 + AMB_DIM;
+        
+        virtual constexpr Int Size() const override
         {
-            return 1 + AMB_DIM;
+            return SIZE;
         }
 
     protected:
 
-        mutable SReal self_buffer [1 + AMB_DIM];
+        mutable SReal self_buffer [SIZE];
         
 #include "Primitive_BoilerPlate.hpp"
         
@@ -109,26 +111,8 @@ namespace GJK
         // BoxMinMax computes the "lower left" lo and "upper right" hi vectors of the primitives bounding box and sets box_min = min(lo, box_min) and box_max = min(h, box_max)
         virtual void BoxMinMax( SReal * const box_min_, SReal * const box_max_ ) const
         {
-            copy_buffer( &serialized_data[1], box_min_, AMB_DIM );
-            copy_buffer( &serialized_data[1], box_max_, AMB_DIM );
-        }
-        
-        void PrintStats() const
-        {
-            print(ClassName()+"::PrintStats():");
-            
-            std::stringstream s;
-            
-            s << "serialized_data = { " << serialized_data[0];
-            
-            for( Int i = 1; i < Size(); ++ i )
-            {
-                s << ", " << serialized_data[i];
-            }
-        
-            s <<" }";
-            
-            print(s.str());
+            copy_buffer<AMB_DIM>( &serialized_data[1], box_min_ );
+            copy_buffer<AMB_DIM>( &serialized_data[1], box_max_ );
         }
         
         

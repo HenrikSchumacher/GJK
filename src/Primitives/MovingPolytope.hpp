@@ -46,6 +46,11 @@ namespace GJK
         
         __ADD_CLONE_CODE__(CLASS)
         
+        
+        static constexpr Int COORD_SIZE = 1 + (1 + POINT_COUNT ) * AMB_DIM;
+        static constexpr Int VELOC_SIZE = 1 + (1 + POINT_COUNT ) * AMB_DIM + 1;
+        static constexpr Int SIZE       = COORD_SIZE + VELOC_SIZE;
+
     public:
         
         virtual Int PointCount() const override
@@ -56,18 +61,18 @@ namespace GJK
         
         virtual Int CoordinateSize() const override
         {
-            return 1 + (1 + POINT_COUNT ) * AMB_DIM;
+            return COORD_SIZE;
         }
         
         virtual Int VelocitySize() const override
         {
-            return 1 + (1 + POINT_COUNT ) * AMB_DIM + 1;
+            return VELOC_SIZE;
         }
         
         
         virtual Int Size() const override
         {
-            return CoordinateSize() + VelocitySize();
+            return SIZE;
         }
         
         virtual void FromCoordinates( const ExtReal * const p_, const Int i = 0 ) override
@@ -123,12 +128,12 @@ namespace GJK
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::ReadCoordinatesSerialized");
             
-            SReal * restrict const p__ = &p_serialized[CoordinateSize() * i];
+            SReal * restrict const p__ = &p_serialized[COORD_SIZE * i];
             
             p__[0] = r * r;
             
-            copy_buffer( &av_position[0],  &p__[1]        , AMB_DIM               );
-            copy_buffer( &positions[0][0], &p__[1+AMB_DIM], AMB_DIM * POINT_COUNT );
+            copy_buffer<AMB_DIM>              ( &av_position[0],  &p__[1]         );
+            copy_buffer<AMB_DIM * POINT_COUNT>( &positions[0][0], &p__[1+AMB_DIM] );
             
             GJK_toc(ClassName()+"::ReadCoordinatesSerialized");
         }
@@ -138,12 +143,12 @@ namespace GJK
             // Write to serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteCoordinatesSerialized");
             
-            const SReal * restrict const p__ = &p_serialized[CoordinateSize() * i];
+            const SReal * restrict const p__ = &p_serialized[COORD_SIZE * i];
             
             r = std::sqrt(p__[0]);
             
-            copy_buffer( &p__[1],         &av_position[0],  AMB_DIM               );
-            copy_buffer( &p__[1+AMB_DIM], &positions[0][0], AMB_DIM * POINT_COUNT );
+            copy_buffer<AMB_DIM              >( &p__[1],         &av_position[0] );
+            copy_buffer<AMB_DIM * POINT_COUNT>( &p__[1+AMB_DIM], &positions[0][0] );
             
             GJK_toc(ClassName()+"::WriteCoordinatesSerialized");
         }
@@ -264,14 +269,14 @@ namespace GJK
             // Loads from serialized data as stored by Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteVelocitiesSerialized");
             
-            SReal * restrict const v__ = &v_serialized[VelocitySize() * i];
+            SReal * restrict const v__ = &v_serialized[VELOC_SIZE * i];
             
             v__[0] = w;
             
-            copy_buffer( &av_velocity[0],   &v__[1]        , AMB_DIM               );
-            copy_buffer( &velocities[0][0], &v__[1+AMB_DIM], AMB_DIM * POINT_COUNT );
+            copy_buffer<AMB_DIM              >( &av_velocity[0],   &v__[1]         );
+            copy_buffer<AMB_DIM * POINT_COUNT>( &velocities[0][0], &v__[1+AMB_DIM] );
             
-            v__[VelocitySize()-1] = v;
+            v__[VELOC_SIZE-1] = v;
             
             GJK_toc(ClassName()+"::WriteVelocitiesSerialized");
         }
@@ -281,14 +286,14 @@ namespace GJK
             // Reads from serialized data as stored by WriteVelocitiesSerialized
             GJK_tic(ClassName()+"::ReadVelocitiesSerialized");
             
-            const SReal * restrict const v__ = &v_serialized[VelocitySize() * i];
+            const SReal * restrict const v__ = &v_serialized[VELOC_SIZE * i];
             
             w = v__[0];
             
-            copy_buffer( &v__[1],         &av_velocity[0],   AMB_DIM               );
-            copy_buffer( &v__[1+AMB_DIM], &velocities[0][0], AMB_DIM * POINT_COUNT );
+            copy_buffer<AMB_DIM              >( &v__[1],         &av_velocity[0]   );
+            copy_buffer<AMB_DIM * POINT_COUNT>( &v__[1+AMB_DIM], &velocities[0][0] );
             
-            v = v__[VelocitySize()-1];
+            v = v__[VELOC_SIZE-1];
             
             GJK_toc(ClassName()+"::ReadVelocitiesSerialized");
         }
@@ -300,7 +305,7 @@ namespace GJK
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteDeformedSerialized");
             
-            SReal * restrict const p = p_serialized + CoordinateSize() * i;
+            SReal * restrict const p = p_serialized + COORD_SIZE * i;
             
 //            p[0] = r * r;
             

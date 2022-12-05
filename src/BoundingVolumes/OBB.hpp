@@ -8,7 +8,7 @@ namespace GJK
     // The OBB is the image of Cuboid[ {-L[0],...,-L[AMB_DIM-1]}, {L[0],...,L[AMB_DIM-1]} ] under the ORTHOGONAL mapping x \mapsto rotation * x + center.
     
     
-    // serialized_data is assumed to be an array of size Size(). Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
+    // serialized_data is assumed to be an array of size SIZE. Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
     
     // DATA LAYOUT
     // serialized_data[0] = squared radius
@@ -33,14 +33,16 @@ namespace GJK
         
         virtual ~CLASS() override = default;
         
-        constexpr Int Size() const override
+        static constexpr Int SIZE = 1 + AMB_DIM + AMB_DIM + AMB_DIM * AMB_DIM;
+        
+        virtual constexpr Int Size() const override
         {
-            return 1 + AMB_DIM + AMB_DIM + AMB_DIM * AMB_DIM;
+            return SIZE;
         }
         
 protected:
 
-        mutable Real self_buffer [1 + AMB_DIM + AMB_DIM + AMB_DIM * AMB_DIM];
+        mutable Real self_buffer [SIZE];
  
 public:
 
@@ -56,13 +58,8 @@ public:
                 return;
             }
             
-            SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(n);
-            
             // Zero bounding volume's data.
-            for( Int k = 0; k < Size(); ++k )
-            {
-                serialized_data[k] = static_cast<SReal>(0);
-            }
+            zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
             SReal & r2 = serialized_data[0];
@@ -80,10 +77,9 @@ public:
                 }
             }
 
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                average[k] *= n_inv;
-            }
+            const SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(n);
+            
+            scale_buffer<AMB_DIM>(n_inv,average);
             
             // Compute covariance matrix.
             for( Int i = 0; i < n; ++i )
@@ -192,19 +188,17 @@ public:
                 return;
             }
             
-            Int P_Size = P.Size();
-            SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(end-begin);
+            
             
             // Zero bounding volume's data.
-            for( Int k = 0; k < Size(); ++k )
-            {
-                serialized_data[k] = static_cast<SReal>(0);
-            }
+            zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
             SReal & r2 = serialized_data[0];
             SReal * restrict const average    = serialized_data + 1;
             SReal * restrict const covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
+            
+            const Int P_Size = P.Size();
             
             // Compute average of the InterPoints of all primitives.
             for( Int i = begin; i < end; ++i )
@@ -217,10 +211,9 @@ public:
                 }
             }
 
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                average[k] *= n_inv;
-            }
+            const SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(end-begin);
+            
+            scale_buffer<AMB_DIM>(n_inv,average);
             
             // Compute covariance matrix.
             for( Int i = begin; i < end; ++i )
@@ -321,7 +314,7 @@ public:
 //            valprint("begin",begin);
 //            valprint("end",end);
             
-            Int P_Size = P.Size();
+            const Int P_Size = P.Size();
             
             SetPointer( C_serialized, C_ID );
             

@@ -15,7 +15,7 @@ namespace GJK
         
         // The Ellipsoid is the image of unit sphere under the affine mapping x \mapsto transform * x + center.
         
-        // serialized_data is assumed to be an array of size Size(). Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
+        // serialized_data is assumed to be an array of size SIZE. Will never be allocated by class! Instead, it is meant to be mapped onto an array of type Real by calling the member SetPointer.
         
         // DATA LAYOUT
         // serialized_data[0] = squared radius
@@ -34,14 +34,16 @@ namespace GJK
 
         virtual ~CLASS() override = default;
         
-        constexpr Int Size() const override
+        static constexpr Int SIZE = 1 + AMB_DIM + AMB_DIM * AMB_DIM;
+        
+        virtual constexpr Int Size() const override
         {
-            return 1 + AMB_DIM + AMB_DIM * AMB_DIM;
+            return SIZE;
         }
                
     private:
 
-        mutable SReal self_buffer [1 + AMB_DIM + AMB_DIM * AMB_DIM];
+        mutable SReal self_buffer [SIZE];
         
     public:
         

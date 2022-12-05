@@ -338,7 +338,7 @@ namespace GJK
                         dotvv             = dots[i_last][i_last];
                         best_lambda[last] = one;
 
-                        copy_buffer( &coords[i_last][0], &v[0], AMB_DIM);
+                        copy_buffer<AMB_DIM>( &coords[i_last][0], &v[0]);
                     }
                     GJK_toc(ClassName()+"::DistanceSubalgorithm");
                     
@@ -533,8 +533,8 @@ namespace GJK
                 {
                     closest_facet = facet;
                     dotvv = facet_squared_dist;
-                    copy_buffer( &facet_closest_point[0], &v[0], AMB_DIM);
-                    copy_buffer( &lambda[0], &best_lambda[0], AMB_DIM+1);
+                    copy_buffer<AMB_DIM>  ( &facet_closest_point[0], &v[0]           );
+                    copy_buffer<AMB_DIM+1>( &lambda[0],              &best_lambda[0] );
                 }
             }
             else
@@ -660,7 +660,7 @@ namespace GJK
             dotvv = dots[0][0];
             best_lambda[0] = one;
 
-            copy_buffer( &coords[0][0], v, AMB_DIM);
+            copy_buffer<AMB_DIM>( &coords[0][0], v );
         
             while( true )
             {
@@ -743,8 +743,8 @@ namespace GJK
                 {
                     const Int i_i = vertices[i];
                     
-                    copy_buffer( &coords[i_i][0], &coords[i][0], AMB_DIM );
-                    copy_buffer( &Q_supp[i_i][0], &Q_supp[i][0], AMB_DIM );
+                    copy_buffer<AMB_DIM>( &coords[i_i][0], &coords[i][0] );
+                    copy_buffer<AMB_DIM>( &Q_supp[i_i][0], &Q_supp[i][0] );
 
                     for( Int j = i; j < simplex_size; ++j )
                     {

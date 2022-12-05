@@ -6,7 +6,7 @@
 namespace GJK
 {
 
-    // serialized_data is assumed to be an array of size Size(). Will never be allocated by class! Instead, it is meant to be mapped onto an array of type SReal by calling the member SetPointer.
+    // serialized_data is assumed to be an array of size SIZE. Will never be allocated by class! Instead, it is meant to be mapped onto an array of type SReal by calling the member SetPointer.
     
     // DATA LAYOUT
     // serialized_data[0] = squared radius
