@@ -113,7 +113,7 @@ namespace GJK
             
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
-                copy_cast_buffer<AMB_DIM>( &coords_[AMB_DIM * s[j]], &hull_coords[AMB_DIM * j] );
+                copy_buffer<AMB_DIM>( &coords_[AMB_DIM * s[j]], &hull_coords[AMB_DIM * j] );
             }
             
             // Compute average.
