@@ -28,10 +28,8 @@ namespace GJK
         Separated
     };
     
-#define CLASS GJK_Algorithm
-    
     template<int AMB_DIM, typename Real_, typename Int_>
-    class alignas( OBJECT_ALIGNMENT ) CLASS
+    class alignas( OBJECT_ALIGNMENT ) GJK_Algorithm
     {
         ASSERT_FLOAT(Real_);
         ASSERT_INT  (Int_ );
@@ -53,12 +51,12 @@ namespace GJK
         static constexpr Real zero      = static_cast<Real>(0);
         static constexpr Real one       = static_cast<Real>(1);
         
-        Real coords [AMB_DIM+1][AMB_DIM  ] = {};  //  position of the corners of the simplex; only the first simplex_size rows are defined.
-        Real P_supp [AMB_DIM+1][AMB_DIM  ] = {};  //  support points of the simplex in primitive P
-        Real Q_supp [AMB_DIM+1][AMB_DIM  ] = {};  //  support points of the simplex in primitive Q
+        Real coords   [AMB_DIM+1][AMB_DIM  ] = {};  //  position of the corners of the simplex; only the first simplex_size rows are defined.
+        Real P_supp   [AMB_DIM+1][AMB_DIM  ] = {};  //  support points of the simplex in primitive P
+        Real Q_supp   [AMB_DIM+1][AMB_DIM  ] = {};  //  support points of the simplex in primitive Q
 
-        Real dots   [AMB_DIM+1][AMB_DIM+1] = {};  // simplex_size x simplex_size matrix of dots products of  the vectors coords[0],..., coords[simplex_size-1];
-        Real Gram   [AMB_DIM  ][AMB_DIM  ] = {};  // Gram matrix of size = (simplex_size-1) x (simplex_size-1) of frame spanned by the vectors coords[i] - coords[simplex_size-1];
+        Real dots     [AMB_DIM+1][AMB_DIM+1] = {};  // simplex_size x simplex_size matrix of dots products of  the vectors coords[0],..., coords[simplex_size-1];
+        Real Gram     [AMB_DIM  ][AMB_DIM  ] = {};  // Gram matrix of size = (simplex_size-1) x (simplex_size-1) of frame spanned by the vectors coords[i] - coords[simplex_size-1];
         
         Real g        [AMB_DIM  ][AMB_DIM  ] = {}; // The local contiguous gram matrix for facets of size > 3.
         Real v                   [AMB_DIM  ] = {}; // current direction vector (quite hot)
@@ -83,10 +81,10 @@ namespace GJK
         Int sub_calls = 0;
         GJK_Reason reason = GJK_Reason::NoReason;
         bool separatedQ = false;
-        
 
     public:
-        CLASS()
+        
+        GJK_Algorithm()
         {
             GJK_print("GJK_Algorithm()");
             GJK_DUMP(eps);
@@ -95,12 +93,12 @@ namespace GJK
             // Initializing facet_sizes, facet_vertices, and facet_faces.
             // TODO: In principle, the compiler should be possible to populate those at compile time. Dunno how to work this black magic.
 
-            for( Int facet = 0; facet < FACE_COUNT; ++ facet)
+            for( Int facet = 0; facet < FACE_COUNT; ++ facet )
             {
                 Int i = 0;
                 
-                Int * restrict const vertices = facet_vertices[facet];
-                Int * restrict const faces    = facet_faces[facet];
+                Int * restrict const vertices = &facet_vertices[facet][0];
+                Int * restrict const faces    = &facet_faces   [facet][0];
 
                 for( Int vertex = 0; vertex < AMB_DIM+1; ++vertex )
                 {
@@ -124,11 +122,11 @@ namespace GJK
             visited[0] = true;
         }
 
-        CLASS( const CLASS & other ) : CLASS() {};
+        GJK_Algorithm( const GJK_Algorithm & other ) : GJK_Algorithm() {};
         
-        CLASS( CLASS  && other ) : CLASS() {};
+        GJK_Algorithm( GJK_Algorithm  && other ) : GJK_Algorithm() {};
         
-        ~CLASS() = default;
+        ~GJK_Algorithm() = default;
         
         constexpr Int AmbDim() const
         {
@@ -150,15 +148,13 @@ namespace GJK
             return separatedQ;
         }
         
-        void ClosestPoint( Real * vec ) const
+        template<typename ExtReal>
+        void WriteClosestPoint( ExtReal * restrict const vec ) const
         {
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                vec[k] = v[k];
-            }
+            copy_buffer<AMB_DIM>( &v[0], vec );
         }
 
-        Int SubCalls() const
+        Int SubCallCount() const
         {
             return sub_calls;
         }
@@ -197,6 +193,9 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::Compute_Gram");
             
+            // Computes Gram matrix Gram[i][i] = <coords[i] - coords[0], coords[j] - coords[0]>.
+            // However, we do that in a convoluted way to save a few flops.
+            
             for( Int i = 0; i < simplex_size; ++i )
             {
                 const Real R1 = dots[i][simplex_size];
@@ -207,7 +206,8 @@ namespace GJK
                 Gram[i][i] = dots[i][i] + R2 - R1;
 
                 // This is to guarantee that the current facet has full rank.
-                // If g is not of full rank, then most recently added point (w) was already contained in the old simplex. (If another point were a problem, then  the code below would have aborted already the previous GJK iteration.
+                // If g is not of full rank, then most recently added point (w) was already contained in the old simplex.
+                // (If another point were a problem, then the code below would have aborted already the previous GJK iteration.
                 if( Gram[i][i] <= 0 )
                 {
                     GJK_toc(ClassName()+"::Compute_Gram");
@@ -227,6 +227,9 @@ namespace GJK
         int Push()
         {
             GJK_tic(ClassName()+"::Push");
+            
+            // Pushes most recent difference of support points (i.e. w = P_supp[simplex_size] - Q_supp[simplex_size] )
+            // into the simplex coords.
 
             for( Int k = 0; k < AMB_DIM; ++k)
             {
@@ -249,8 +252,7 @@ namespace GJK
             GJK_tic(ClassName()+"::PrepareDistanceSubalgorithm");
 
             // Compute starting facet.
-            const Int end = simplex_size;
-            Int facet = (static_cast<Int>(1) << end) - static_cast<Int>(1) ;
+            Int facet = (static_cast<Int>(1) << simplex_size) - static_cast<Int>(1) ;
             
             closest_facet = facet;
             olddotvv = dotvv;
@@ -261,7 +263,7 @@ namespace GJK
             // Facet itself is marked as unvisited; if `facet` is a reasonable starting facet, it _must_ be visited.
             visited[facet] = false;
             
-            const Int top_index = end - 1;
+            const Int top_index = simplex_size - 1;
             // Subsimplices of `facet` have _lower_ index than `facet`.
 
             for( Int i = 0; i < facet; ++i )
@@ -271,6 +273,26 @@ namespace GJK
             
             GJK_toc(ClassName()+"::PrepareDistanceSubalgorithm");
             return facet;
+        }
+        
+        void HandlePoints()
+        {
+            // In the case that both primitices are points, we have to take care that witnesses are computed correctly.
+            simplex_size = 1;
+            best_lambda[1] = 1;
+            
+            P.InteriorPoint(&P_supp[0][0]);
+            Q.InteriorPoint(&Q_supp[0][0]);
+
+            dotvv = 0;
+            
+            for( Int k = 0; k < AMB_DIM; ++k )
+            {
+                v[k] = P_supp[0][k] - Q_supp[0][k];
+                dotvv += v[k] * v[k];
+            }
+            
+            separatedQ = dotvv > zero;
         }
         
         // ################################################################
@@ -284,8 +306,8 @@ namespace GJK
             ++sub_calls;
             
             const Int facet_size = facet_sizes[facet];
-            const Int * restrict const vertices = facet_vertices[facet];
-            const Int * restrict const faces    = facet_faces   [facet];
+            const Int * restrict const vertices = &facet_vertices[facet][0];
+            const Int * restrict const faces    = &facet_faces   [facet][0];
             
             Real lambda [AMB_DIM+1] = {}; // The local contiguous version of Lambda for facets of size > 3.
 
@@ -358,7 +380,6 @@ namespace GJK
 
                     break;
                 }
-#if AMB_DIM > 2
                 case 3:
                 {
                     // Setting up linear system for the barycenter coordinates lambda.
@@ -379,43 +400,6 @@ namespace GJK
 
                     break;
                 }
-#endif
-//#if AMB_DIM > 3
-//                case 4:
-//                {
-//                    // 3-dimensional simplex.
-//                    // Setting up linear system for the barycenter coordinates lambda.
-//
-//                    const Int i_0 = vertices[0];
-//                    const Int i_1 = vertices[1];
-//                    const Int i_2 = vertices[2];
-//
-//                    const Real * restrict const G_i_0 = Gram[i_0];
-//                    const Real * restrict const G_i_1 = Gram[i_1];
-//                    const Real * restrict const G_i_2 = Gram[i_2];
-//
-//                    // Using Cramer's rule to solve the linear system.
-//                    const Real G00 = G_i_1[i_1] * G_i_2[i_2] - G_i_1[i_2] * G_i_1[i_2];
-//                    const Real G01 = G_i_1[i_2] * G_i_0[i_2] - G_i_0[i_1] * G_i_2[i_2];
-//                    const Real G02 = G_i_0[i_1] * G_i_1[i_2] - G_i_1[i_1] * G_i_0[i_2];
-//
-//                    const Real G11 = G_i_0[i_0] * G_i_2[i_2] - G_i_0[i_2] * G_i_0[i_2];
-//                    const Real G12 = G_i_0[i_1] * G_i_0[i_2] - G_i_0[i_0] * G_i_1[i_2];
-//                    const Real G22 = G_i_0[i_0] * G_i_1[i_1] - G_i_0[i_1] * G_i_0[i_1];
-//
-//                    const Real det_inv = one / (G_i_0[i_0] * G00 + G_i_0[i_1] * G01 + G_i_0[i_2] * G02);
-//
-//                    lambda[0] = ( G00 * Lambda[i_0] + G01 * Lambda[i_1] + G02 * Lambda[i_2] ) * det_inv;
-//                    lambda[1] = ( G01 * Lambda[i_0] + G11 * Lambda[i_1] + G12 * Lambda[i_2] ) * det_inv;
-//                    lambda[2] = ( G02 * Lambda[i_0] + G12 * Lambda[i_1] + G22 * Lambda[i_2] ) * det_inv;
-//                    lambda[3] = one - lambda[0] - lambda[1] - lambda[2];
-//
-//                    // Check the barycentric coordinates for positivity ( and compute the 0-th coordinate).
-//                    interior = (lambda[0] > eps) && (lambda[1] > eps) && (lambda[2] > eps) && (lambda[3] > eps);
-//
-//                    break;
-//                }
-//#endif
                 default:
                 {
                     // Setting up linear system for the barycenter coordinates lambda.
@@ -436,17 +420,6 @@ namespace GJK
                             g[j][i] = g[i][j] = Gram[i_i][j_j];
                         }
                     }
-                    
-//                    print("g = " + g.to_string(0,last,0,last));
-//                    print("lambda = " + lambda.to_string(0,last));
-                    
-//                    // beware: g and lambda are overwritten.
-//                    int stat = Submatrix_LinearSolve<AMB_DIM>( &g[0][0], &lambda[0], last );
-//
-//                    if( stat )
-//                    {
-//                        eprint(ClassName()+"::DistanceSubalgorithm: LAPACKE_dgesv returned stat = " + ToString(stat));
-//                    }
                     
                     // Cholesky decomposition
                     for( Int k = 0; k < last; ++k )
@@ -501,12 +474,13 @@ namespace GJK
                 }
             }
             
-            // If we arrive here, then facet_size>1.
+            // If we arrive here, then facet_size > 1.
             
             if( interior )
             {
                 GJK_print("Interior point found.");
-                // If the nearest point on facet lies in the interior, there is no point in searching its faces; mark them as visited.
+                // If the nearest point on `facet` lies in the interior, there is no point in searching its faces;
+                // we simply mark them as visited.
                 
                 for( Int j = 0; j < facet_size; ++j )
                 {
@@ -566,18 +540,36 @@ namespace GJK
         // ################################################################
         
         
-        // If collision_only is set to true, then we abott if, at any time, we found a point x in P and a point y Q such that
-        // theta_squared_ * (x-y)^T * (x-y) <= TOL_squared_.
-        
-        // Useful for intersections of thickened objects: Use TOL_squared_ = (r_P + r_Q)^2 (where r_P and r_Q are the thickening radii of P and Q) and theta_squared = 1.
-        
-        // Also useful for multipole acceptance criteria: Use TOL_squared_ = max(r_P^2,r_Q^2) where r_P and r_Q are the radii of P and Q) and theta_squared = chi * chi, where chi >= 0 is the separation parameter.
+        // If collision_only is set to true, then we abort if at any time, we found a point x in P and a point y in  Q such that:
+        //
+        //   - if TOL_squared_ > 0: theta_squared_ * |x-y|^2 <= TOL_squared_
+        //
+        //   - if TOL_squared_ <=0:
+        //
+        //          - if P.SquaredRadius() and Q.SquaredRadius() are positive:
+        //
+        //                 theta_squared_ * |x-y|^2 <= eps_squared * min( P.SquaredRadius(), Q.SquaredRadius() )
+        //
+        //          - if any of P.SquaredRadius(), Q.SquaredRadius() is nonpositive:
+        //
+        //                 theta_squared_ * |x-y|^2 <= eps_squared * max( P.SquaredRadius(), Q.SquaredRadius() )
+        //
+        // For intersections of thickened objects use
+        //
+        //    theta_squared = 1 and
+        //
+        //    TOL_squared_  = (r_P + r_Q)^2, where r_P and r_Q are the thickening radii of P and Q.
+        //
+        // For multipole acceptance criteria use
+        //
+        //    theta_squared = chi * chi, where chi >= 0 is the separation parameter and
+        //
+        //    TOL_squared_  = max(r_P^2,r_Q^2), where r_P and r_Q are the radii of P and Q and
         
         void Compute(
             const PrimitiveBase_T & P,
             const PrimitiveBase_T & Q,
             const bool collision_only  = false,
-            // If this is set to true, the algorithm will abort once a separating direction is found.
             const bool reuse_direction = false,
             const Real TOL_squared_    = zero,
             const Real theta_squared_  = one
@@ -599,22 +591,23 @@ namespace GJK
             }
             else
             {
+                // Using a tolerance based on the radii of the primitives.
+                
                 GJK_print("Setting TOL_squared to "+ToString(eps)+" times minimum radius of primitives.");
-                TOL_squared = eps * std::min( P.SquaredRadius(), Q.SquaredRadius() );
+                TOL_squared = eps_squared * std::min( P.SquaredRadius(), Q.SquaredRadius() );
                 if( TOL_squared <= zero )
                 {
+                    // One of the primitives must be a point. Use the radius of the other one as tolerance.
+                    
                     GJK_print("Setting TOL_squared to "+ToString(eps)+" times maximum radius of primitives.");
-                    TOL_squared = eps * std::max( P.SquaredRadius(), Q.SquaredRadius() );
+                    TOL_squared = eps_squared * std::max( P.SquaredRadius(), Q.SquaredRadius() );
                     
                     if( TOL_squared <= zero )
                     {
-                        dotvv = InteriorPoints_SquaredDistance(P,Q);
-                        separatedQ = dotvv > zero;
+                        // Both primitives are points.
                         
-//                            wprint(ClassName()+"::Compute: Both primitives have nonpositive bounding radius: first radius = "+ToString(P.SquaredRadius())+", second radius = "+ToString(Q.SquaredRadius())+".");
-//                            DUMP(omp_get_thread_num());
+                        HandlePoints();
                         
-                        // TODO: set witnesses correctly.
                         GJK_toc(ClassName()+"::Compute");
                         return;
                     }
@@ -638,14 +631,8 @@ namespace GJK
                     v[k] -= Q_supp[0][k];
                 }
             }
-
-            dotvv = v[0] * v[0];
             
-            for( Int k = 1; k < AMB_DIM; ++k )
-            {
-                dotvv += v[k] * v[k];
-            }
-            olddotvv = dotvv;
+            olddotvv = dotvv = dot_buffer<AMB_DIM>(v,v);
 
             // Unrolling the first iteration to avoid a call to DistanceSubalgorithm.
             
@@ -716,7 +703,7 @@ namespace GJK
                 
                 if( in_simplex  )
                 {
-                    GJK_print("Stopping because w=p-q was already in simplex.");
+                    GJK_print("Stopping because the point w = p - q was already in simplex.");
                     
                     // The vertex added most recently to the simplex coincides with one of the previous vertices.
                     // So we stop here and use the old best_lambda. All we have to do is to reduce the simplex_size by 1.
@@ -727,17 +714,14 @@ namespace GJK
                 
                 Int initial_facet = PrepareDistanceSubalgorithm();
                 
-                // This computes closest_facet, v, and dotvv of the current simplex. If the simplex is degenerate, DistanceSubalgorithm terminates early and returns 1. Otherwise it returns 0.
+                // This computes closest_facet, v, and dotvv of the current simplex.
+                // If the simplex is degenerate, DistanceSubalgorithm terminates early and returns 1. Otherwise it returns 0.
                 DistanceSubalgorithm( initial_facet );
-                
-
-                GJK_print("before reordering");
-                GJK_DUMP(simplex_size);
                 
                 simplex_size = facet_sizes[closest_facet];
                 const Int * restrict const vertices = facet_vertices[closest_facet];
+                
                 // Deleting superfluous vertices in simplex and writing everything to the beginning of the array.
-                // TODO: Can we reduce the number of copies to be made here?
                 
                 for( Int i = 0; i < simplex_size; ++i )
                 {
@@ -752,28 +736,18 @@ namespace GJK
                     }
                 }
 
-                GJK_print("after reordering");
-//                print( "coords = " + coords.to_string(0,simplex_size,0,AMB_DIM,GJK_digits) );
                 GJK_DUMP(simplex_size);
                 GJK_DUMP(olddotvv - dotvv);
                 GJK_DUMP(olddotvv);
                 GJK_DUMP(dotvv);
-                
-//                if( (iter>1) && (olddotvv - dotvv < -eps * dotvv) && ( theta_squared * dotvv > TOL_squared ) )
-//                {
-//                    eprint("-------------------------> Something is going wrong in iteration " + ToString(iter) + " : dotvv > olddotvv");
-//                    valprint("Improvement", olddotvv - dotvv, GJK_digits );
-//                    valprint("olddotvv ", olddotvv, GJK_digits );
-//                    valprint("dotvv", dotvv, GJK_digits );
-//
-//                }
                 
                 if( abs(olddotvv - dotvv) <= eps * dotvv )
                 {
                     reason = GJK_Reason::SmallProgress;
                     break;
                 }
-            }
+                
+            } // while( true )
             
 #ifdef GJK_Report
             if( collision_only && separatedQ )
@@ -808,8 +782,6 @@ namespace GJK
                 GJK_print("Converged after " + std::to_string(iter) + " iterations.");
             }
             
-
-            
             if( in_simplex  )
             {
                 GJK_print("Stopped because w was already in simplex.");
@@ -824,6 +796,7 @@ namespace GJK
 #endif
             
             GJK_toc(ClassName()+"::Compute");
+            
         } // Compute
 
         // ################################################################
@@ -837,21 +810,30 @@ namespace GJK
             const bool reuse_direction_ = false
         )
         {
+            // If both P.SquaredRadius() and Q.SquaredRadius() are positive, this routines checks
+            // whether there are points x in P and y in Q such that
+            //
+            //     theta_squared_ * |x-y|^2 <= eps_squared * std::min( P.SquaredRadius(), Q.SquaredRadius() );
+            //
+            // Otherwise it checks whether
+            //
+            //     theta_squared_ * |x-y|^2 <= eps_squared * std::min( P.SquaredRadius(), Q.SquaredRadius() );
+            //
+            
             Compute(P, Q, true, reuse_direction_, zero, theta_squared_ );
             
             return !separatedQ;
-        } // IntersectingQ
+        }
         
         // Faster overload for AABBs.
         template<typename SReal>
         bool IntersectingQ(
             const AABB<AMB_DIM,Real,Int,SReal> & P,
-            const AABB<AMB_DIM,Real,Int,SReal> & Q,
-            const Real theta_squared_
+            const AABB<AMB_DIM,Real,Int,SReal> & Q
         )
         {
-            return AABB_SquaredDistance( P, Q ) <= zero;
-        } // IntersectingQ
+            return AABB_SquaredDistance(P,Q) <= zero;
+        }
         
         // ################################################################
         // #####################   SquaredDistance   #####################
@@ -866,7 +848,7 @@ namespace GJK
             Compute(P, Q, false, reuse_direction_, zero );
             
             return dotvv;
-        } // SquaredDistance
+        }
         
         
         // Faster overload for AABBs.
@@ -876,8 +858,8 @@ namespace GJK
             const AABB<AMB_DIM,Real,Int,SReal> & Q
         )
         {
-            return AABB_SquaredDistance( P, Q );
-        } // SquaredDistance
+            return AABB_SquaredDistance(P,Q);
+        }
         
         // ##########################################################################
         // ##############################   Witnesses   #############################
@@ -889,11 +871,15 @@ namespace GJK
             const bool reuse_direction_ = false
         )
         {
+            // x and y are the return parameters.
+            // On return x lies in P while y lies in Q.
+            // These points realize the minimal distance between any two points in these primitives.
+            // Scalar return values is this minimal distance _squared_(!).
+            
             Compute(P, Q, false, reuse_direction_, zero );
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-//                x[k] = best_lambda[0] * P_supp[0][k];
                 y[k] = best_lambda[0] * Q_supp[0][k];
             }
             
@@ -907,7 +893,6 @@ namespace GJK
                 {
                     for( Int k = 0; k < AMB_DIM; ++k )
                     {
-//                        x[k] += best_lambda[1] * P_supp[1][k];
                         y[k] += best_lambda[1] * Q_supp[1][k];
                     }
                     break;
@@ -918,7 +903,6 @@ namespace GJK
                     {
                         for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -930,7 +914,6 @@ namespace GJK
                     {
                         for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -942,7 +925,6 @@ namespace GJK
                     {
                         for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -950,12 +932,10 @@ namespace GJK
                 }
                 default:
                 {
-                    // TODO: Could also be done by BLAS...
                     for( Int j = 1; j < simplex_size; ++j )
                     {
                         for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -985,7 +965,7 @@ namespace GJK
             Compute(P, Q, true, reuse_direction_, min_dist * min_dist );
             
             return !separatedQ;
-        } // Offset_IntersectingQ
+        }
         
         // ################################################################
         // #################   Offset_SquaredDistance   ##################
@@ -1004,7 +984,7 @@ namespace GJK
             const Real dist = std::max( zero, sqrt(dotvv) - P_offset - Q_offset );
             
             return dist * dist;
-        } // SquaredDistance
+        }
         
         // ##########################################################################
         // ###########################   Offset_Witnesses   #########################
@@ -1017,6 +997,12 @@ namespace GJK
         )
         {
             // x and y are the return variables.
+            // On return,
+            // x lies in the offset of P with offset P_offset and
+            // y lies in the offset of Q with offset Q_offset.
+            // The realize the minimal distance between two points in these offsets.
+            // Scalar return values is this minimal distance _squared_(!).
+            
             const Real min_dist = P_offset + Q_offset;
             
             Compute(P, Q, false, reuse_direction_, min_dist * min_dist );
@@ -1029,10 +1015,6 @@ namespace GJK
             if( dist > zero )
             {
                 // If no intersection was detected, we have to set the witnesses onto the bounday of the thickened primitives.
-
-//                x_scale = -P_offset / dist0;
-//                y_scale =  Q_offset / dist0;
-                
                 
                 // We want y = y_0 + y_scale * v, where y_0 is constructed from Q_supp by barycentric coordinates
                 y_scale =  Q_offset / dist0;
@@ -1047,12 +1029,12 @@ namespace GJK
                 y_scale = zero;
                 // We want x = y + x_scale * v.
                 x_scale = one;
-                
             }
 
+            // Compute y = best_lambda * Q_supp;
+            
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-//                x[k] = x_scale * v[k] + best_lambda[0] * P_supp[0][k];
                 y[k] = y_scale * v[k] + best_lambda[0] * Q_supp[0][k];
             }
             
@@ -1066,7 +1048,6 @@ namespace GJK
                 {
                     for( Int k = 0; k < AMB_DIM; ++k )
                     {
-//                        x[k] += best_lambda[1] * P_supp[1][k];
                         y[k] += best_lambda[1] * Q_supp[1][k];
                     }
                     break;
@@ -1075,9 +1056,8 @@ namespace GJK
                 {
                     for( Int j = 1; j < 3; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -1087,9 +1067,8 @@ namespace GJK
                 {
                     for( Int j = 1; j < 4; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -1099,9 +1078,8 @@ namespace GJK
                 {
                     for( Int j = 1; j < 5; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -1109,12 +1087,10 @@ namespace GJK
                 }
                 default:
                 {
-                    // TODO: Could also be done by BLAS...
                     for( Int j = 1; j < simplex_size; ++j )
                     {
-                            for( Int k = 0; k < AMB_DIM; ++k )
+                        for( Int k = 0; k < AMB_DIM; ++k )
                         {
-//                            x[k] += best_lambda[j] * P_supp[j][k];
                             y[k] += best_lambda[j] * Q_supp[j][k];
                         }
                     }
@@ -1127,9 +1103,9 @@ namespace GJK
             }
             
             return dist * dist;
+            
         } // Offset_Witnesses
 
-        
         // ########################################################################
         // ##################   InteriorPoints_SquaredDistance   ##################
         // ########################################################################
@@ -1142,17 +1118,14 @@ namespace GJK
             P.InteriorPoint( &coords[0][0] );
             Q.InteriorPoint( &coords[1][0] );
             
-            Real diff = coords[1][0] - coords[0][0];
-            Real r2   = diff * diff;
-            
-            for( Int k = 1; k < AMB_DIM; ++k )
+            for( Int k = 0; k < AMB_DIM; ++k )
             {
-                diff = coords[1][k] - coords[0][k];
-                r2  += diff * diff;
+                const Real diff = coords[1][k] - coords[0][k];
+                r2 += diff * diff;
             }
             return r2;
             
-        } // InteriorPoints_SquaredDistance
+        }
         
         
         // ########################################################################
@@ -1166,15 +1139,10 @@ namespace GJK
             const bool reuse_direction_ = false
         )
         {
-//            valprint("P.SquaredRadius()",P.SquaredRadius());
-//            valprint("Q.SquaredRadius()",Q.SquaredRadius());
-//            valprint("std::max( P.SquaredRadius(), Q.SquaredRadius() )",std::max( P.SquaredRadius(), Q.SquaredRadius() ) );
-            
             Compute(P, Q, true, reuse_direction_, std::max( P.SquaredRadius(), Q.SquaredRadius() ), theta_squared_ );
             
             return separatedQ;
-        } // MultipoleAcceptanceCriterion
-        
+        }
         
         // Faster overload for AABBs.
         template<typename SReal>
@@ -1185,17 +1153,15 @@ namespace GJK
         )
         {
             return std::max( P.SquaredRadius(), Q.SquaredRadius() ) < theta_squared_ * AABB_SquaredDistance( P, Q );
-        } // MultipoleAcceptanceCriterion
+        }
         
         std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"+ToString(AMB_DIM)+","+TypeName<Real>::Get()+","+TypeName<Real>::Get()+">";
+            return "GJK_Algorithm<"+ToString(AMB_DIM)+","+TypeName<Real>::Get()+","+TypeName<Real>::Get()+">";
         }
         
     }; // GJK_Algorithm
 
-#undef CLASS
-    
 } // namespace GJK
 
 
