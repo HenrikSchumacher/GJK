@@ -275,7 +275,10 @@ namespace GJK
             return facet;
         }
         
-        void HandlePoints()
+        void HandlePoints(
+            const PrimitiveBase_T & P,
+            const PrimitiveBase_T & Q
+        )
         {
             // In the case that both primitices are points, we have to take care that witnesses are computed correctly.
             simplex_size = 1;
@@ -606,7 +609,7 @@ namespace GJK
                     {
                         // Both primitives are points.
                         
-                        HandlePoints();
+                        HandlePoints(P,Q);
                         
                         GJK_toc(ClassName()+"::Compute");
                         return;
@@ -632,7 +635,7 @@ namespace GJK
                 }
             }
             
-            olddotvv = dotvv = dot_buffer<AMB_DIM>(v,v);
+            olddotvv = dotvv = dot_buffers<AMB_DIM>(v,v);
 
             // Unrolling the first iteration to avoid a call to DistanceSubalgorithm.
             
@@ -806,8 +809,8 @@ namespace GJK
         bool IntersectingQ(
             const PrimitiveBase_T & P,
             const PrimitiveBase_T & Q,
-            const Real theta_squared_ = one,
-            const bool reuse_direction_ = false
+            const Real theta_squared_,
+            const bool reuse_direction_
         )
         {
             // If both P.SquaredRadius() and Q.SquaredRadius() are positive, this routines checks
@@ -825,14 +828,41 @@ namespace GJK
             return !separatedQ;
         }
         
-        // Faster overload for AABBs.
+        bool IntersectingQ(
+            const PrimitiveBase_T & P,
+            const PrimitiveBase_T & Q,
+            const Real theta_squared_
+        )
+        {
+            return IntersectingQ(P,Q,theta_squared_,false);
+        }
+        
+        bool IntersectingQ(
+            const PrimitiveBase_T & P,
+            const PrimitiveBase_T & Q
+        )
+        {
+            return IntersectingQ(P,Q,one,false);
+        }
+        
+        // Faster overloads for AABBs.
+        template<typename SReal>
+        bool IntersectingQ(
+            const AABB<AMB_DIM,Real,Int,SReal> & P,
+            const AABB<AMB_DIM,Real,Int,SReal> & Q,
+            const Real theta_squared_
+        )
+        {
+            return AABB_SquaredDistance(P,Q) <= zero;
+        }
+        
         template<typename SReal>
         bool IntersectingQ(
             const AABB<AMB_DIM,Real,Int,SReal> & P,
             const AABB<AMB_DIM,Real,Int,SReal> & Q
         )
         {
-            return AABB_SquaredDistance(P,Q) <= zero;
+            return IntersectingQ(P,Q,one);
         }
         
         // ################################################################
@@ -1117,6 +1147,8 @@ namespace GJK
         {
             P.InteriorPoint( &coords[0][0] );
             Q.InteriorPoint( &coords[1][0] );
+            
+            Real r2 = 0;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
