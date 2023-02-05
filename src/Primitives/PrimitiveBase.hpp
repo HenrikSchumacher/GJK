@@ -53,7 +53,7 @@ namespace GJK
         
         virtual std::string ClassName() const
         {
-            return "PrimitiveBase<"+TypeName<Real>::Get()+","+ToString(AMB_DIM)+">";
+            return std::string("PrimitiveBase<")+TypeName<Real>+","+ToString(AMB_DIM)+">";
         }
         
     }; // PrimitiveBase

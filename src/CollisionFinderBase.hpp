@@ -32,7 +32,7 @@ namespace GJK
         
         std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<Real>::Get()+","+TypeName<Int>::Get()+","+TypeName<SReal>::Get()+","+">";
+            return TO_STD_STRING(CLASS)+"<"+TypeName<Real>+","+TypeName<Int>+","+TypeName<SReal>+","+">";
         }
     };
     

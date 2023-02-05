@@ -1189,7 +1189,7 @@ namespace GJK
         
         std::string ClassName() const
         {
-            return "GJK_Algorithm<"+ToString(AMB_DIM)+","+TypeName<Real>::Get()+","+TypeName<Real>::Get()+">";
+            return "GJK_Algorithm<"+ToString(AMB_DIM)+","+TypeName<Real>+","+TypeName<Real>+">";
         }
         
     }; // GJK_Algorithm

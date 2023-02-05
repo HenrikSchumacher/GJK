@@ -141,7 +141,7 @@ namespace GJK
 
         virtual std::string ClassName() const override
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<Real>::Get()+","+ToString(AMB_DIM)+">";
+            return TO_STD_STRING(CLASS)+"<"+TypeName<Real>+","+ToString(AMB_DIM)+">";
         }
         
     }; // PrimitiveBase

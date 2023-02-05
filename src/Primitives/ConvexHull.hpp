@@ -199,7 +199,7 @@ namespace GJK
         
         virtual std::string ClassName() const override
         {
-            return TO_STD_STRING(CLASS)+"<"+ToString(HULL_COUNT)+","+ToString(AMB_DIM)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+ToString(HULL_COUNT)+","+ToString(AMB_DIM)+","+TypeName<Real>+","+TypeName<Int>+">";
         }
         
     }; // ConvexHull
