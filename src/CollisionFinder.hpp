@@ -19,14 +19,20 @@ namespace GJK
         
         CLASS() {};
 
-        CLASS( const MovingPrimitive_T & P_, const MovingPrimitive_T & Q_ )
-        :   P( P_.Clone() )
-        ,   Q( Q_.Clone() )
+        CLASS(
+            const MovingPrimitive_T & P_,
+            const MovingPrimitive_T & Q_,
+            const SReal TOL
+        )
+        :   P{ P_.Clone() }
+        ,   Q{ Q_.Clone() }
+        ,   eps(TOL)
         {}
         
         CLASS( const CLASS & other )
-        :   P( other.P->Clone() )
-        ,   Q( other.Q->Clone() )
+        :   P { other.P->Clone() }
+        ,   Q { other.Q->Clone() }
+        ,   eps(other.eps)
         {}
       
     protected:
@@ -36,7 +42,7 @@ namespace GJK
         
         mutable GJK_Algorithm<AMB_DIM+1,GJK_Real,Int> G;
         
-        mutable SReal eps = static_cast<SReal>(0.0625);
+        const SReal eps = static_cast<SReal>(0.0625);
         
         mutable Int max_iter = 128;
         mutable SReal b_stack[128] = {};
@@ -48,10 +54,10 @@ namespace GJK
             return eps;
         }
         
-        void SetRelativeTolerance( const SReal eps_)
-        {
-            eps = eps_;
-        }
+//        void SetRelativeTolerance( const SReal eps_)
+//        {
+//            eps = eps_;
+//        }
         
         SReal FindMaximumSafeStepSize(
             const SReal * const p, const SReal * const u,
@@ -94,7 +100,8 @@ namespace GJK
             b_stack[0] = iter;
             
 
-            while( (b-a > eps * a) && (iter < max_iter) )
+//            while( (b-a > eps * a) && (iter < max_iter) )
+            while( (b-a > eps * b) && (iter < max_iter) )
             {
                 ++iter;
                 
@@ -144,6 +151,8 @@ namespace GJK
             {
 //                wprint(ClassName()+"::FindMaximumSafeStepSize: max_iter = "+ToString(max_iter)+" reached." );
                 GJK_toc(ClassName()+"::FindMaximumSafeStepSize");
+                //DEBUGGING
+                print("iter >= max_iter");
                 return static_cast<SReal>(a);
             }
             
