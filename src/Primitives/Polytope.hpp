@@ -310,7 +310,7 @@ namespace GJK
     
     template <int AMB_DIM, typename Real, typename Int, typename SReal,
         typename ExtReal = SReal, typename ExtInt = Int>
-    std::unique_ptr<BASE> MakePolytope( const Int P_size )
+    std::shared_ptr<BASE> MakePolytope( const Int P_size )
     {
         BASE * r;
         switch(  P_size  )
@@ -422,7 +422,7 @@ namespace GJK
             }
         }
         
-        return std::unique_ptr<BASE>(r);
+        return std::shared_ptr<BASE>(r);
         
     } // MakePolytope
     

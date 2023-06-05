@@ -41,8 +41,8 @@ namespace GJK
         for( Int thread = 0; thread < thread_count; ++thread )
         {
             GJK_Algorithm<AMB_DIM,Real,Int> gjk;
-            std::unique_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P = P_.Clone();
-            std::unique_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> Q = Q_.Clone();
+            std::shared_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P = P_.Clone();
+            std::shared_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> Q = Q_.Clone();
 
             const Int i_begin = job_ptr[thread];
             const Int i_end   = job_ptr[thread+1];
@@ -102,8 +102,8 @@ namespace GJK
         for( Int thread = 0; thread < thread_count; ++thread )
         {
             GJK_Algorithm<AMB_DIM,Real,Int> gjk;
-            std::unique_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P = P_.Clone();
-            std::unique_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> Q = Q_.Clone();
+            std::shared_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P = P_.Clone();
+            std::shared_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> Q = Q_.Clone();
 
             const Int i_begin = job_ptr[thread];
             const Int i_end   = job_ptr[thread+1];
@@ -161,8 +161,8 @@ namespace GJK
         {
             
             GJK_Algorithm<AMB_DIM,Real,Int> gjk;
-            std::unique_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P = P_.Clone();
-            std::unique_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> Q = Q_.Clone();
+            std::shared_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P = P_.Clone();
+            std::shared_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> Q = Q_.Clone();
 
             const Int i_begin = job_ptr[thread];
             const Int i_end   = job_ptr[thread+1];

@@ -25,6 +25,18 @@ namespace GJK
         // Move constructor
         CLASS( CLASS && other ) noexcept : BASE( other ) {}
         
+        // Copy assignment
+        const CLASS & operator=( const CLASS & rhs)
+        {
+            return CLASS ( rhs );
+        }
+        
+        // Move assignment
+        const CLASS & operator=( CLASS && rhs)
+        {
+            return CLASS ( std::move(rhs) );
+        }
+        
         virtual ~CLASS() override = default;
         
     protected:

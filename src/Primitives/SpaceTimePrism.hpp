@@ -15,8 +15,8 @@ namespace GJK
     protected:
     
 
-        std::unique_ptr<PROTO_T> proto_0;
-        std::unique_ptr<PROTO_T> proto_1;
+        std::shared_ptr<PROTO_T> proto_0;
+        std::shared_ptr<PROTO_T> proto_1;
         
         SReal t_0 = 0;
         SReal t_1 = 1;

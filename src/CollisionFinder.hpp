@@ -37,8 +37,8 @@ namespace GJK
       
     protected:
 
-        mutable std::unique_ptr<MovingPrimitive_T> P;
-        mutable std::unique_ptr<MovingPrimitive_T> Q;
+        mutable std::shared_ptr<MovingPrimitive_T> P;
+        mutable std::shared_ptr<MovingPrimitive_T> Q;
         
         mutable GJK_Algorithm<AMB_DIM+1,GJK_Real,Int> G;
         
