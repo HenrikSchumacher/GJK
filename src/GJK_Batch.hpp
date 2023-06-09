@@ -23,7 +23,7 @@ namespace GJK
         print("First  primitive type     = "+P_.ClassName());
         print("Second primitive type     = "+Q_.ClassName());
         
-        Int sub_calls = ParallelDoReduce(
+        const Int sub_calls = ParallelDoReduce(
             [&]( const Int thread ) -> Int
             {
                 Int sub_calls (0);
@@ -78,7 +78,7 @@ namespace GJK
         print("First  primitive type     = "+P_.ClassName());
         print("Second primitive type     = "+Q_.ClassName());
 
-        Int sub_calls = ParallelDoReduce(
+        const Int sub_calls = ParallelDoReduce(
             [&]( const Int thread ) -> Int
             {
                 Int sub_calls (0);
@@ -134,7 +134,7 @@ namespace GJK
         print("First  primitive type     = "+P_.ClassName());
         print("Second primitive type     = "+Q_.ClassName());
         
-        Int sub_calls = ParallelDoReduce(
+        const Int sub_calls = ParallelDoReduce(
             [&]( const Int thread ) -> Int
             {
                 Int sub_calls (0);
