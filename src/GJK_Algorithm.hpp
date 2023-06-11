@@ -763,7 +763,6 @@ namespace GJK
             if( iter >= max_iter)
             {
 //                wprint(ClassName()+"::Compute: Stopped because iter = " + ToString(iter) + " >= " + ToString(max_iter) + " = max_iter iterations reached.");
-                DUMP(omp_get_thread_num());
                 GJK_DUMP(simplex_size);
                 GJK_DUMP(dotvv);
                 GJK_DUMP(theta_squared);
