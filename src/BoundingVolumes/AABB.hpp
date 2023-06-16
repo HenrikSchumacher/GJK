@@ -85,10 +85,10 @@ namespace GJK
             SReal & r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
-                  SReal * restrict const box_min = serialized_data + 1;
-                  SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
+                  mut<SReal> box_min = serialized_data + 1;
+                  mut<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
-            const SReal * restrict const coords = coords_in;
+            ptr<SReal> coords = coords_in;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -129,7 +129,7 @@ namespace GJK
         // array p is supposed to represent a matrix of size N x AMB_DIM
         void FromPrimitives(
             PolytopeBase<AMB_DIM,Real,Int,SReal> & P,  // primitive prototype
-            SReal * const P_serialized,                // serialized data of primitives
+            mut<SReal> P_serialized,                // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
             Int thread_count = 1                       // how many threads to utilize
@@ -140,8 +140,8 @@ namespace GJK
             SReal & r2 = serialized_data[0];
 
             // Abusing serialized_data temporarily as working space.
-            SReal * restrict const box_min = serialized_data + 1;
-            SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
+            mut<SReal> box_min = serialized_data + 1;
+            mut<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -175,7 +175,7 @@ namespace GJK
         // array p is supposed to represent a matrix of size N x AMB_DIM
         virtual void FromPrimitives(
             PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,      // primitive prototype
-            SReal * const P_serialized,                  // serialized data of primitives
+            mut<SReal> P_serialized,                  // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
             Int thread_count = 1                       // how many threads to utilize
@@ -186,9 +186,9 @@ namespace GJK
             SReal & r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
-                  SReal * restrict const box_min = serialized_data + 1;
-                  SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
-            
+            mut<SReal> box_min = serialized_data + 1;
+            mut<SReal> box_max = serialized_data + 1 + AMB_DIM;
+        
             for( Int k = 0; k < AMB_DIM; ++k )
             {
                 box_min[k] = std::numeric_limits<SReal>::max();
@@ -230,12 +230,10 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( ptr<Real> v, mut<Real> s ) const override
         {
-            const SReal * restrict const x = serialized_data + 1;
-            const SReal * restrict const L = serialized_data + 1 + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            ptr<SReal> x = serialized_data + 1;
+            ptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
             Real R2 = static_cast<Real>(0);
@@ -255,12 +253,10 @@ namespace GJK
 
 
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( ptr<Real> v, mut<Real> s ) const override
         {
-            const SReal * restrict const x = serialized_data + 1;
-            const SReal * restrict const L = serialized_data + 1 + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            ptr<SReal> x = serialized_data + 1;
+            ptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
             Real R2 = static_cast<Real>(0);
@@ -295,11 +291,11 @@ namespace GJK
         
         inline friend Real AABB_SquaredDistance( const CLASS & P, const CLASS & Q )
         {
-            const SReal * restrict const P_x = P.serialized_data+1;              // center of box P
-            const SReal * restrict const P_L = P.serialized_data+1+AMB_DIM;      // edge half-lengths of box P
+            ptr<SReal> P_x = P.serialized_data+1;              // center of box P
+            ptr<SReal> P_L = P.serialized_data+1+AMB_DIM;      // edge half-lengths of box P
             
-            const SReal * restrict const Q_x = Q.serialized_data+1;              // center of box Q
-            const SReal * restrict const Q_L = Q.serialized_data+1+AMB_DIM;      // edge half-lengths of box Q
+            ptr<SReal> Q_x = Q.serialized_data+1;              // center of box Q
+            ptr<SReal> Q_L = Q.serialized_data+1+AMB_DIM;      // edge half-lengths of box Q
             
             Real d2 = static_cast<Real>(0);
             
@@ -325,11 +321,11 @@ namespace GJK
             if( serialized_data != p )
             {
                 
-                SReal * restrict const x1 = serialized_data + 1;
-                SReal * restrict const L1 = serialized_data + 1 + AMB_DIM;
+                mut<SReal> x1 = serialized_data + 1;
+                mut<SReal> L1 = serialized_data + 1 + AMB_DIM;
                 
-                SReal * restrict const x2 = p + 1;
-                SReal * restrict const L2 = p + 1 + AMB_DIM;
+                mut<SReal> x2 = p + 1;
+                mut<SReal> L2 = p + 1 + AMB_DIM;
                 
                 SReal r2 = static_cast<SReal>(0);
                 

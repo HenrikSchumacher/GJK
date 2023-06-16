@@ -61,14 +61,14 @@ namespace GJK
         
         virtual Int Split(
             PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,               // primitive prototype; to be "mapped" over P_serialized, thus not const.
-            SReal * const P_serialized, const Int begin, const Int end,    // which _P_rimitives are in question
-            Int   * const P_ordering,                                       // to keep track of the permutation of the primitives
-            SReal * const C_data, const Int C_ID,                           // where to get   the bounding volume info for _C_urrent bounding volume
-            SReal * const L_serialized, const Int L_ID,                     // where to store the bounding volume info for _L_eft  child (if successful!)
-            SReal * const R_serialized, const Int R_ID,                     // where to store the bounding volume info for _R_ight child (if successful!)
-            SReal *       score,                                             // some scratch buffer for one scalar per primitive
-            Int   *       perm,                                              // some scratch buffer for one Int per primitive (for storing local permutation)
-            Int   *       inv_perm,                                          // some scratch buffer for one Int per primitive (for storing inverse of local permutation)
+            mut<SReal> P_serialized, const Int begin, const Int end,      // which _P_rimitives are in question
+            mut<Int>   P_ordering,                                        // to keep track of the permutation of the primitives
+            mut<SReal> C_data, const Int C_ID,                            // where to get   the bounding volume info for _C_urrent bounding volume
+            mut<SReal> L_serialized, const Int L_ID,                      // where to store the bounding volume info for _L_eft  child (if successful!)
+            mut<SReal> R_serialized, const Int R_ID,                      // where to store the bounding volume info for _R_ight child (if successful!)
+            mut<SReal> score,                                             // some scratch buffer for one scalar per primitive
+            mut<Int>   perm,                                              // some scratch buffer for one Int per primitive (for storing local permutation)
+            mut<Int>   inv_perm,                                          // some scratch buffer for one Int per primitive (for storing inverse of local permutation)
             Int thread_count = 1                                           // how many threads to utilize
         ) override
         {
@@ -107,7 +107,7 @@ namespace GJK
             Int split_index = begin;
             
             // Swap primitives according to their interior points in direction split_dir;
-            SReal * restrict const p = &P_serialized[1 + split_dir];
+            mut<SReal> p = &P_serialized[1 + split_dir];
             for( Int i = begin; i < end; ++i )
             {
                 //                P.SetPointer( P_serialized, i );

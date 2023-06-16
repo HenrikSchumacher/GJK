@@ -63,11 +63,9 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( ptr<Real> v, mut<Real> s ) const override
         {
-            const SReal * restrict const c = &serialized_data[1];
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            ptr<SReal> c = &serialized_data[1];
 
             Real value = static_cast<Real>(c[0]) * v[0];
             
@@ -83,16 +81,15 @@ namespace GJK
         }
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( ptr<Real> v, mut<Real> s ) const override
         {
-            return MinSupportVector( dir, supp );
+            return MinSupportVector( v, s );
         }
 
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( ptr<Real> v, Real & min_val, Real & max_val ) const override
         {
-            const SReal * restrict const center = &serialized_data[1];
-            const  Real * restrict const v = dir;
+            ptr<SReal> center = &serialized_data[1];
 
             Real value = static_cast<Real>(center[0]) * v[0];
             

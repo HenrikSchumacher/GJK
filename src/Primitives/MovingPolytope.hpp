@@ -128,7 +128,7 @@ namespace GJK
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::ReadCoordinatesSerialized");
             
-            SReal * restrict const p__ = &p_serialized[COORD_SIZE * i];
+            mut<SReal> p__ = &p_serialized[COORD_SIZE * i];
             
             p__[0] = r * r;
             
@@ -143,7 +143,7 @@ namespace GJK
             // Write to serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteCoordinatesSerialized");
             
-            const SReal * restrict const p__ = &p_serialized[COORD_SIZE * i];
+            ptr<SReal> p__ = &p_serialized[COORD_SIZE * i];
             
             r = std::sqrt(p__[0]);
             
@@ -211,7 +211,7 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::FromVelocitiesIndexList");
             
-            const ExtInt * restrict const s = tuples + POINT_COUNT * i;
+            ptr<ExtInt> s = tuples + POINT_COUNT * i;
             
             {
                 for( Int k = 0; k < AMB_DIM; ++k )
@@ -269,7 +269,7 @@ namespace GJK
             // Loads from serialized data as stored by Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteVelocitiesSerialized");
             
-            SReal * restrict const v__ = &v_serialized[VELOC_SIZE * i];
+            mut<SReal> v__ = &v_serialized[VELOC_SIZE * i];
             
             v__[0] = w;
             
@@ -286,7 +286,7 @@ namespace GJK
             // Reads from serialized data as stored by WriteVelocitiesSerialized
             GJK_tic(ClassName()+"::ReadVelocitiesSerialized");
             
-            const SReal * restrict const v__ = &v_serialized[VELOC_SIZE * i];
+            ptr<SReal> v__ = &v_serialized[VELOC_SIZE * i];
             
             w = v__[0];
             
@@ -723,7 +723,7 @@ namespace GJK
         typename ExtReal = SReal, typename ExtInt = Int>
     std::shared_ptr<BASE> MakeMovingPolytope( const Int P_size )
     {
-        switch(  P_size  )
+        switch( P_size )
         {
             case 1:
             {
