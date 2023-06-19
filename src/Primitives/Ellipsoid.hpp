@@ -116,7 +116,7 @@ namespace GJK
                 R1 += b[i] * b[i];
             }
             
-            R1 = static_cast<Real>(1) / sqrt(R1);
+            R1 = static_cast<Real>(1) / std::sqrt(R1);
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -168,7 +168,7 @@ namespace GJK
                 R1 += b[i] * b[i];
             }
             
-            R1 = static_cast<Real>(-1) / sqrt(R1);
+            R1 = static_cast<Real>(-1) / std::sqrt(R1);
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {

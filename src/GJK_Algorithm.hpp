@@ -41,9 +41,9 @@ namespace GJK
         
         using PrimitiveBase_T = PrimitiveBase<AMB_DIM,Real,Int>;
         
-        Real eps = std::sqrt(std::numeric_limits<Real>::epsilon());
-        Real eps_squared = eps * eps;
-        Int max_iter = 100;
+        static constexpr Real eps = Sqrt(std::numeric_limits<Real>::epsilon());
+        static constexpr Real eps_squared = eps * eps;
+        static constexpr Int max_iter = 100;
         
     protected:
         
@@ -427,7 +427,7 @@ namespace GJK
                     // Cholesky decomposition
                     for( Int k = 0; k < last; ++k )
                     {
-                        const Real a = g[k][k] = sqrt(g[k][k]);
+                        const Real a = g[k][k] = std::sqrt(g[k][k]);
                         const Real ainv = one/a;
 
                         for( Int j = k+1; j < last; ++j )
@@ -692,9 +692,9 @@ namespace GJK
                 }
                 
                 
-                if( abs(dotvv - dotvw) <= eps * dotvv )
+                if( std::abs(dotvv - dotvw) <= eps * dotvv )
                 {
-                    GJK_print("Stopping because of fabs(dotvv - dotvw) = "+ToString(fabs(dotvv - dotvw))+" <= "+ToString(eps * dotvv)+" = eps * dotvv.");
+                    GJK_print("Stopping because of abs(dotvv - dotvw) = "+ToString(std::abs(dotvv - dotvw))+" <= "+ToString(eps * dotvv)+" = eps * dotvv.");
                     GJK_DUMP(dotvv);
                     GJK_DUMP(dotvw);
                     GJK_DUMP(eps);
@@ -744,7 +744,7 @@ namespace GJK
                 GJK_DUMP(olddotvv);
                 GJK_DUMP(dotvv);
                 
-                if( abs(olddotvv - dotvv) <= eps * dotvv )
+                if( std::abs(olddotvv - dotvv) <= eps * dotvv )
                 {
                     reason = GJK_Reason::SmallProgress;
                     break;
@@ -768,7 +768,7 @@ namespace GJK
                 GJK_DUMP(theta_squared);
                 GJK_DUMP(TOL_squared);
                 GJK_DUMP(theta_squared * dotvv);
-                GJK_DUMP(abs(olddotvv - dotvv));
+                GJK_DUMP(std::abs(olddotvv - dotvv));
             }
             
 #ifdef GJK_Report
@@ -779,7 +779,7 @@ namespace GJK
                 GJK_DUMP(dotvv);
             }
 
-            if( abs(olddotvv - dotvv) <= eps * dotvv  )
+            if( std::abs(olddotvv - dotvv) <= eps * dotvv  )
             {
                 GJK_print("Converged after " + std::to_string(iter) + " iterations.");
             }
@@ -1010,7 +1010,7 @@ namespace GJK
             
             Compute(P, Q, false, reuse_direction_, min_dist * min_dist );
             
-            const Real dist = std::max( zero, sqrt(dotvv) - P_offset - Q_offset );
+            const Real dist = std::max( zero, std::sqrt(dotvv) - P_offset - Q_offset );
             
             return dist * dist;
         }
@@ -1036,7 +1036,7 @@ namespace GJK
             
             Compute(P, Q, false, reuse_direction_, min_dist * min_dist );
             
-            const Real dist0 = sqrt(dotvv);
+            const Real dist0 = std::sqrt(dotvv);
                   Real dist = dist0 - P_offset - Q_offset;
                   Real x_scale;
                   Real y_scale;

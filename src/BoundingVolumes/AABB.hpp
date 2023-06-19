@@ -245,7 +245,7 @@ namespace GJK
                 
                 R1   = v[k] * L_k;
                 R2  += v[k] * x_k + std::abs(R1);
-                s[k] = x_k + MyMath::sign(R1) * L_k;
+                s[k] = x_k + Sign(R1) * L_k;
             }
 
             return R2;
@@ -268,7 +268,7 @@ namespace GJK
                 
                 R1   = v[k] * L_k;
                 R2  += v[k] * x_k - std::abs(R1);
-                s[k] = x_k - MyMath::sign(R1) * L_k;
+                s[k] = x_k - Sign(R1) * L_k;
             }
 
             return R2;
