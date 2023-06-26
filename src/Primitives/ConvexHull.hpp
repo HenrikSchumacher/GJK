@@ -39,7 +39,7 @@ namespace GJK
             }
         }
         
-        bool IsNull( const Int i ) const
+        bool NullQ( const Int i ) const
         {
             return ( primitive[i] == nullptr );
         }
