@@ -40,6 +40,7 @@ namespace GJK
         using Real = Real_;
         
         using PrimitiveBase_T = PrimitiveBase<AMB_DIM,Real,Int>;
+        using Op = Tensors::Op;
         
         static constexpr Real eps = Sqrt(std::numeric_limits<Real>::epsilon());
         static constexpr Real eps_squared = eps * eps;
@@ -635,7 +636,7 @@ namespace GJK
                 }
             }
             
-            olddotvv = dotvv = dot_buffers<AMB_DIM>(v,v);
+            olddotvv = dotvv = dot_buffers<Op::Id,Op::Id,AMB_DIM>(v,v);
 
             // Unrolling the first iteration to avoid a call to DistanceSubalgorithm.
             
