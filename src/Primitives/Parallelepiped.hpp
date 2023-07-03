@@ -76,7 +76,7 @@ namespace GJK
             
             // Computes the sum of the squared half-axis lengths which equals the sum of squared singular values which equals the square of the Frobenius norm.
             
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -90,7 +90,7 @@ namespace GJK
             
             // Adding a safety term that vanishes when frame has orthogonal column. This is to guarantee that r2 is indeed greater or equal to the actual squared radius.
             // This is superflous if the Parallelepiped is supposed to represent an OBB.
-            SReal dots = static_cast<SReal>(0);
+            SReal dots = Scalar::Zero<SReal>;
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -107,7 +107,7 @@ namespace GJK
                 }
 
             }
-            r2 += static_cast<SReal>(2)*dots;
+            r2 += Scalar::Two<SReal>*dots;
         }
         
         
@@ -121,7 +121,7 @@ namespace GJK
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -137,7 +137,7 @@ namespace GJK
                     R1 += v[j]*static_cast<Real>(A[AMB_DIM*j+i]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(1) : static_cast<Real>(-1);
+                R2 = (R1 >= Scalar::Zero<Real>) ? Scalar::One<Real> : -Scalar::One<Real>;
                 
                 R3 += static_cast<Real>(x[i])*v[i]+R1*R2;
                 
@@ -161,7 +161,7 @@ namespace GJK
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -177,7 +177,7 @@ namespace GJK
                     R1 += v[j]*static_cast<Real>(A[AMB_DIM*j+i]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(-1) : static_cast<Real>(1);
+                R2 = (R1 >= Scalar::Zero<Real>) ? -Scalar::One<Real> : Scalar::One<Real>;
                 
                 R3 += static_cast<Real>(x[i])*v[i]+R1*R2;
                 
@@ -199,8 +199,8 @@ namespace GJK
 
             Real R1;
             Real R2;
-            min_val = static_cast<Real>(0);
-            max_val = static_cast<Real>(0);
+            min_val = Scalar::Zero<Real>;
+            max_val = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -211,7 +211,7 @@ namespace GJK
                     R1 += v[j]*static_cast<Real>(A[AMB_DIM*j+i]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(1) : static_cast<Real>(-1);
+                R2 = (R1 >= Scalar::Zero<Real>) ? Scalar::One<Real> : -Scalar::One<Real>;
                 Real x_i = static_cast<Real>(x[i]);
                 min_val += x_i*v[i]-R1*R2;
                 max_val += x_i*v[i]+R1*R2;

@@ -95,7 +95,7 @@ namespace GJK
                 }
             }
 
-            constexpr SReal factor = (static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT));
+            constexpr SReal factor = (Scalar::Inv<SReal>(POINT_COUNT));
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -103,7 +103,7 @@ namespace GJK
             }
 
             // Compute radius.
-            SReal r_2 = static_cast<SReal>(0);
+            SReal r_2 = Scalar::Zero<SReal>;
             
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
@@ -176,10 +176,10 @@ namespace GJK
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                av_velocity[k] *= (static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT));
+                av_velocity[k] *= (Scalar::Inv<SReal>(POINT_COUNT));
             }
 
-            SReal v_2 = static_cast<SReal>(0);
+            SReal v_2 = Scalar::Zero<SReal>;
 
 
             for( Int k = 0; k < AMB_DIM; ++k )
@@ -189,7 +189,7 @@ namespace GJK
             v = std::sqrt(v_2);
 
             // Compute radius.
-            SReal w_2 = static_cast<SReal>(0);
+            SReal w_2 = Scalar::Zero<SReal>;
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
                 SReal diff = velocities[j][0] - av_velocity[0];
@@ -232,10 +232,10 @@ namespace GJK
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                av_velocity[k] *= (static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT));
+                av_velocity[k] *= (Scalar::Inv<SReal>(POINT_COUNT));
             }
             
-            SReal v_2 = static_cast<SReal>(0);
+            SReal v_2 = Scalar::Zero<SReal>;
             
             
             for( Int k = 0; k < AMB_DIM; ++k )
@@ -245,7 +245,7 @@ namespace GJK
             v = std::sqrt(v_2);
             
             // Compute radius.
-            SReal w_2 = static_cast<SReal>(0);
+            SReal w_2 = Scalar::Zero<SReal>;
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
                 SReal diff = velocities[j][0] - av_velocity[0];
@@ -638,7 +638,7 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::InteriorPoint");
             
-            const SReal t = static_cast<SReal>(0.5) * (a + b);
+            const SReal t = Scalar::Half<SReal> * (a + b);
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -655,7 +655,7 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::InteriorPoint");
             
-            const SReal t = static_cast<SReal>(0.5) * (a + b);
+            const SReal t = Scalar::Half<SReal> * (a + b);
             
             if( k == AMB_DIM )
             {
@@ -674,7 +674,7 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::SquaredRadius");
             
-            const SReal s = static_cast<SReal>(0.5) * std::abs(b-a);
+            const SReal s = Scalar::Half<SReal> * std::abs(b-a);
             const SReal x = s * v + r + w * b;
             const SReal y = s * T;
             

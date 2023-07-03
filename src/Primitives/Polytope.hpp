@@ -59,7 +59,7 @@ namespace GJK
         
         virtual void FromCoordinates( const ExtReal * const hull_coords_, const Int i = 0 ) const override
         {
-            constexpr SReal w = static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT);
+            constexpr SReal w = Scalar::Inv<SReal>(POINT_COUNT);
             
             SReal & r2 = this->serialized_data[0];
             
@@ -85,7 +85,7 @@ namespace GJK
             }
             
             // Compute radius.
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
@@ -105,7 +105,7 @@ namespace GJK
         {
             const ExtInt * restrict const s = tuples + POINT_COUNT * i;
             
-            constexpr SReal w = static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT);
+            constexpr SReal w = Scalar::Inv<SReal>(POINT_COUNT);
             
             SReal & r2 = this->serialized_data[0];
             SReal * restrict const center = &this->serialized_data[1];
@@ -130,7 +130,7 @@ namespace GJK
             }
             
             // Compute radius.
-            r2 = static_cast<Real>(0);
+            r2 = Scalar::Zero<Real>;
 
             for( Int j = 0; j < POINT_COUNT; ++j )
             {

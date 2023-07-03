@@ -166,9 +166,9 @@ namespace GJK
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                p[i] = static_cast<Real>(0.5) * ( p_0[i] + p_1[i] );
+                p[i] = Scalar::Half<Real> * ( p_0[i] + p_1[i] );
             }
-            p[AMB_DIM] = static_cast<Real>(0.5) * ( t_0 + t_1 );
+            p[AMB_DIM] = Scalar::Half<Real> * ( t_0 + t_1 );
         }
         
         // Returns some (upper bound of the) squared radius of the primitive as measured from the result of InteriorPoint.
@@ -176,11 +176,11 @@ namespace GJK
         {
             if( k < AMB_DIM )
             {
-                return static_cast<Real>(0.5) * ( proto_0->InteriorPoint(k) + proto_1->InteriorPoint(k) );
+                return Scalar::Half<Real> * ( proto_0->InteriorPoint(k) + proto_1->InteriorPoint(k) );
             }
             else
             {
-                return static_cast<Real>(0.5) * ( t_0 + t_1 );
+                return Scalar::Half<Real> * ( t_0 + t_1 );
             }
         }
         
@@ -189,7 +189,7 @@ namespace GJK
         {
             Real r_0 = std::sqrt(proto_0->SquaredRadius());
             Real r_1 = std::sqrt(proto_1->SquaredRadius());
-            Real r   = static_cast<Real>(0.25) * std::abs( t_1 - t_0 ) + std::max(r_0,r_1);
+            Real r   = Scalar::Quarter<Real> * std::abs( t_1 - t_0 ) + std::max(r_0,r_1);
             return r * r;
         }
 

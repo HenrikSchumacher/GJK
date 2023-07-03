@@ -68,20 +68,20 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::FindMaximumSafeStepSize");
             
-            SReal a = static_cast<SReal>(0);
+            SReal a = Scalar::Zero<SReal>;
             SReal b = tinit;
 
             P->ReadCoordinatesSerialized(p);
             P->ReadVelocitiesSerialized(u);
             P->SetFirstTime(a);
             P->SetSecondTime(b);
-            P->SetTimeScale(static_cast<SReal>(1));
+            P->SetTimeScale(Scalar::One<SReal>);
 
             Q->ReadCoordinatesSerialized(q);
             Q->ReadVelocitiesSerialized(v);
             Q->SetFirstTime(a);
             Q->SetSecondTime(b);
-            Q->SetTimeScale(static_cast<SReal>(1));
+            Q->SetTimeScale(Scalar::One<SReal>);
 
 //            wprint(ClassName()+"::FindMaximumSafeStepSize: This might not work correctly for tinit !=1?!");
             
@@ -137,7 +137,7 @@ namespace GJK
                 {
                     // push
                     b_stack[++stack_ptr] = b;
-                    b = static_cast<SReal>(0.5) * (a + b);
+                    b = Scalar::Half<SReal> * (a + b);
                     
                     P->SetSecondTime(b);
                     Q->SetSecondTime(b);
@@ -156,7 +156,7 @@ namespace GJK
                 return static_cast<SReal>(a);
             }
             
-            if( a<= static_cast<SReal>(0) )
+            if( a<= Scalar::Zero<SReal> )
             {
                 GJK_print("Returning b.");
                 GJK_toc(ClassName()+"::FindMaximumSafeStepSize");

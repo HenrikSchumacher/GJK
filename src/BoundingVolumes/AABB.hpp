@@ -20,8 +20,8 @@ namespace GJK
         Real id_matrix[AMB_DIM][AMB_DIM];
     
         const int bits = static_cast<int>(64-1) / static_cast<int>(AMB_DIM);
-        const SReal power  = static_cast<SReal>(0.9999) * std::pow( static_cast<SReal>(2), bits );
-        const SReal offset = static_cast<SReal>(0.5) * power;
+        const SReal power  = static_cast<SReal>(0.9999) * std::pow( Scalar::Two<SReal>, bits );
+        const SReal offset = Scalar::Half<SReal> * power;
         
     protected:
         
@@ -110,11 +110,11 @@ namespace GJK
                 }
             }
             
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
                 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -157,11 +157,11 @@ namespace GJK
                 P.BoxMinMax( box_min, box_max );
             }
 
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -212,11 +212,11 @@ namespace GJK
                 }
             }
 
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
                 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -236,7 +236,7 @@ namespace GJK
             ptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
-            Real R2 = static_cast<Real>(0);
+            Real R2 = Scalar::Zero<Real>;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -259,7 +259,7 @@ namespace GJK
             ptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
-            Real R2 = static_cast<Real>(0);
+            Real R2 = Scalar::Zero<Real>;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -297,13 +297,13 @@ namespace GJK
             ptr<SReal> Q_x = Q.serialized_data+1;              // center of box Q
             ptr<SReal> Q_L = Q.serialized_data+1+AMB_DIM;      // edge half-lengths of box Q
             
-            Real d2 = static_cast<Real>(0);
+            Real d2 = Scalar::Zero<Real>;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
                 Real x = static_cast<Real>(
                     std::max(
-                        static_cast<SReal>(0),
+                             Scalar::Zero<SReal>,
                         std::max( P_x[k]-P_L[k], Q_x[k]-Q_L[k] )
                         -
                         std::min( P_x[k]+P_L[k], Q_x[k]+Q_L[k] )
@@ -327,15 +327,15 @@ namespace GJK
                 mut<SReal> x2 = p + 1;
                 mut<SReal> L2 = p + 1 + AMB_DIM;
                 
-                SReal r2 = static_cast<SReal>(0);
+                SReal r2 = Scalar::Zero<SReal>;
                 
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
                     const SReal box_min = std::min( x1[k] - L1[k], x2[k] - L2[k] );
                     const SReal box_max = std::max( x1[k] + L1[k], x2[k] + L2[k] );
                     
-                    x1[k] = static_cast<SReal>(0.5) * ( box_max + box_min );
-                    L1[k] = static_cast<SReal>(0.5) * ( box_max - box_min );
+                    x1[k] = Scalar::Half<SReal> * ( box_max + box_min );
+                    L1[k] = Scalar::Half<SReal> * ( box_max - box_min );
                     
                     r2 += L1[k] * L1[k];
                 }

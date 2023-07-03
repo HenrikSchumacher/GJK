@@ -96,7 +96,7 @@ namespace GJK
                 }
             }
             
-            if( L_max <= static_cast<SReal>(0) )
+            if( L_max <= Scalar::Zero<SReal> )
             {
                 eprint(ClassName()+"Split: longest axis has length <=0.");
                 return -1;

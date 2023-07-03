@@ -102,7 +102,7 @@ namespace GJK
                    Real * restrict const s = supp;
                    Real * restrict const b = this->Real_buffer;
 
-            Real R1 = static_cast<Real>(0);
+            Real R1 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -116,7 +116,7 @@ namespace GJK
                 R1 += b[i] * b[i];
             }
             
-            R1 = static_cast<Real>(1) / std::sqrt(R1);
+            R1 = Scalar::One<Real> / std::sqrt(R1);
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -125,7 +125,7 @@ namespace GJK
             
             // Now this->Real_buffer is the max support vector on the unit sphere belonging to the director transform * dir.
             
-            R1 = static_cast<Real>(0);
+            R1 = Scalar::Zero<Real>;
             // Transform the point back to the ellipsoid.
 
             for( Int i = 0; i < AMB_DIM; ++i )
@@ -154,7 +154,7 @@ namespace GJK
                    Real * restrict const s = supp;
                    Real * restrict const b = this->Real_buffer;
 
-            Real R1 = static_cast<Real>(0);
+            Real R1 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -168,7 +168,7 @@ namespace GJK
                 R1 += b[i] * b[i];
             }
             
-            R1 = static_cast<Real>(-1) / std::sqrt(R1);
+            R1 = -Scalar::Inv<Real>(std::sqrt(R1));
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -177,7 +177,7 @@ namespace GJK
             
             // Now this->Real_buffer is the max support vector on the unit sphere belonging to the director transform * dir.
             
-            R1 = static_cast<Real>(0);
+            R1 = Scalar::Zero<Real>;
             
             // Transform the point back to the ellipsoid.
             for( Int i = 0; i < AMB_DIM; ++i )

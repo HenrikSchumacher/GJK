@@ -53,7 +53,7 @@ namespace GJK
         
         virtual void FromCoordinates( const ExtReal * const coords, const Int i = 0 ) const
         {
-            serialized_data[0] = static_cast<SReal>(0);
+            serialized_data[0] = Scalar::Zero<SReal>;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {

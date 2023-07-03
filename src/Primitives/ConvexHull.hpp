@@ -17,7 +17,7 @@ namespace GJK
         const BASE * primitive [HULL_COUNT];
         
         mutable Real buffer [AMB_DIM * (AMB_DIM+1)];
-        mutable Real squared_radius = static_cast<Real>(-1);
+        mutable Real squared_radius = - Scalar::One<Real>;
         
     public:
         
@@ -53,7 +53,7 @@ namespace GJK
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                p[k] = static_cast<Real>(1);
+                p[k] = Scalar::One<Real>;
             }
             
             for( Int i = 0; i < HULL_COUNT; ++i )
@@ -72,7 +72,7 @@ namespace GJK
             
             count = std::max( static_cast<Int>(1), count );
             
-            Real scale = static_cast<Real>(1) / static_cast<Real>(count);
+            Real scale = Scalar::Inv<Real>(count);
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -154,12 +154,12 @@ namespace GJK
         {
             // Computes the sum of the squared axis lengths which equals the sum of squared singular values which equals the square of the Frobenius norm.
             
-            if( squared_radius >= static_cast<Real>(0) )
+            if( squared_radius >= Scalar::Zero<Real> )
             {
                 return squared_radius;
             }
             
-            squared_radius = static_cast<Real>(0);
+            squared_radius = Scalar::Zero<Real>;
             
             for( Int i = 0; i < HULL_COUNT; ++i )
             {

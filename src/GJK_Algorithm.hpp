@@ -49,8 +49,8 @@ namespace GJK
     protected:
         
         static constexpr Int FACE_COUNT = face_count(AMB_DIM);
-        static constexpr Real zero      = static_cast<Real>(0);
-        static constexpr Real one       = static_cast<Real>(1);
+        static constexpr Real zero      = Scalar::Zero<Real>;
+        static constexpr Real one       = Scalar::One <Real>;
         
         Real coords   [AMB_DIM+1][AMB_DIM  ] = {};  //  position of the corners of the simplex; only the first simplex_size rows are defined.
         Real P_supp   [AMB_DIM+1][AMB_DIM  ] = {};  //  support points of the simplex in primitive P

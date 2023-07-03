@@ -77,7 +77,7 @@ public:
                 }
             }
 
-            const SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(n);
+            const SReal n_inv = Scalar::Inv<SReal>(n);
             
             scale_buffer<AMB_DIM>(n_inv,average);
             
@@ -147,7 +147,7 @@ public:
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                SReal diff = 0.5 * (box_max[k] - box_min[k]);
+                SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -211,7 +211,7 @@ public:
                 }
             }
 
-            const SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(end-begin);
+            const SReal n_inv = Scalar::Inv<SReal>(end-begin);
             
             scale_buffer<AMB_DIM>(n_inv,average);
             
@@ -270,7 +270,7 @@ public:
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                SReal diff = sScalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center (within the transformed coordinates)
@@ -336,7 +336,7 @@ public:
                 }
             }
             
-            if( L_max <= static_cast<SReal>(0) )
+            if( L_max <= Scalar::Zero<SReal> )
             {
                 eprint(ClassName()+"::Split: longest axis has length <=0.");
                 return -1;
@@ -357,7 +357,7 @@ public:
                     x += rotationT[ AMB_DIM * split_dir + k ] * (p[k] - center[k]);
                 }
 
-                if( x < static_cast<SReal>(0) )
+                if( x < Scalar::Zero<SReal> )
                 {
                     std::swap( P_ordering[split_index], P_ordering[i] );
 
@@ -400,7 +400,7 @@ public:
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -417,7 +417,7 @@ public:
                     R1 += v[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(L[i]) : -static_cast<Real>(L[i]);
+                R2 = (R1 >= Scalar::Zero<Real>) ? static_cast<Real>(L[i]) : -static_cast<Real>(L[i]);
                 
                 R3 += static_cast<Real>(x[i]) * v[i] + R1 * R2;
                 
@@ -442,7 +442,7 @@ public:
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -459,7 +459,7 @@ public:
                     R1 += v[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? -static_cast<Real>(L[i]) : static_cast<Real>(L[i]);
+                R2 = (R1 >= Scalar::Zero<Real>) ? -static_cast<Real>(L[i]) : static_cast<Real>(L[i]);
                 
                 R3 += static_cast<Real>(x[i]) * v[i] + R1 * R2;
 

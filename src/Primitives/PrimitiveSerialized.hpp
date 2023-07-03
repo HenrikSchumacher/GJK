@@ -108,7 +108,7 @@ namespace GJK
 //                valprint("this->serialized_data",this->serialized_data);
 //                valprint("this->serialized_data[1+k]",this->serialized_data[1+k]);
                 eprint(ClassName()+"::InteriorPoint: serialized_data is set to nullptr. Return 0.");
-                return static_cast<Real>(0);
+                return Scalar::Zero<Real>;
             }
         }
         
