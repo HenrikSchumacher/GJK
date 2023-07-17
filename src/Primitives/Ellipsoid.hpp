@@ -51,25 +51,16 @@ namespace GJK
         
         __ADD_CLONE_CODE__(CLASS)
         
-        void FromTransform( const SReal * const center, const SReal * const transform ) const
+        void FromTransform(  cptr<SReal> center,  cptr<SReal> transform ) const
         {
-            SReal & r2 = this->serialized_data[0];
+            mref<SReal> r2 = this->serialized_data[0];
             
-                  SReal * restrict const x = this->serialized_data + 1;
-                  SReal * restrict const A = this->serialized_data + 1 + AMB_DIM;
+            mptr<SReal> x = serialized_data + 1;
+            mptr<SReal> A = serialized_data + 1 + AMB_DIM;
             
-            const SReal * restrict const __center = center;
-            const SReal * restrict const __transform  = transform;
-            
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                x[k] = __center[k];
-            }
-            
-            for( Int k = 0; k < AMB_DIM * AMB_DIM; ++k )
-            {
-                A[k] = __transform[k];
-            }
+            copy_buffer<AMB_DIM          >( center,    x );
+            copy_buffer<AMB_DIM * AMB_DIM>( transform, A );
+
             
             // Computes the maximum of the squared lengths of the columns of transform.
             // CAUTION: This is only really the squared radius if transform has orthogonal columns!!!
@@ -94,23 +85,21 @@ namespace GJK
         }
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
             const SReal * restrict const x = this->serialized_data+ 1;
             const SReal * restrict const A = this->serialized_data+ 1 + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
                    Real * restrict const b = this->Real_buffer;
 
             Real R1 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                b[i] = static_cast<Real>(A[AMB_DIM * i]) * v[0];
+                b[i] = static_cast<Real>(A[AMB_DIM * i]) * dir[0];
 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    b[i] += v[j] * static_cast<Real>(A[AMB_DIM * j + i]);
+                    b[i] += dir[j] * static_cast<Real>(A[AMB_DIM * j + i]);
                 }
                 
                 R1 += b[i] * b[i];
@@ -130,14 +119,14 @@ namespace GJK
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                s[i] = x[i] + static_cast<Real>(A[i]) * b[0];
+                supp[i] = x[i] + static_cast<Real>(A[i]) * b[0];
 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    s[i] += static_cast<Real>(A[AMB_DIM * i + j]) * b[j];
+                    supp[i] += static_cast<Real>(A[AMB_DIM * i + j]) * b[j];
                 }
                 
-                R1 += s[i] * v[i];
+                R1 += supp[i] * dir[i];
             }
 
             return R1;
@@ -145,24 +134,21 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            
             const SReal * restrict const x = this->serialized_data+ 1;
             const SReal * restrict const A = this->serialized_data+ 1 + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
                    Real * restrict const b = this->Real_buffer;
 
             Real R1 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                b[i] = A[AMB_DIM * i] * v[0];
+                b[i] = A[AMB_DIM * i] * dir[0];
 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    b[i] += v[j] * static_cast<Real>(A[AMB_DIM * j + i]);
+                    b[i] += dir[j] * static_cast<Real>(A[AMB_DIM * j + i]);
                 }
                 
                 R1 += b[i] * b[i];
@@ -182,20 +168,20 @@ namespace GJK
             // Transform the point back to the ellipsoid.
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                s[i] = static_cast<Real>(x[i]) + static_cast<Real>(A[i]) * b[0];
+                supp[i] = static_cast<Real>(x[i]) + static_cast<Real>(A[i]) * b[0];
 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    s[i] += A[AMB_DIM * i + j] * b[j];
+                    supp[i] += A[AMB_DIM * i + j] * b[j];
                 }
                 
-                R1 += s[i] * v[i];
+                R1 += supp[i] * dir[i];
             }
 
             return R1;
         }
         
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
             min_val = MinSupportVector( dir, &this->Real_buffer[0] );
             max_val = MaxSupportVector( dir, &this->Real_buffer[AMB_DIM] );

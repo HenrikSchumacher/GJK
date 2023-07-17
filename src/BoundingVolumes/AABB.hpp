@@ -82,7 +82,7 @@ namespace GJK
         void FromPointCloud( cptr<SReal> coords_in, const Int N ) const override
         {
 //            tic(ClassName()+"::FromPointCloud");
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
                   mptr<SReal> box_min = serialized_data + 1;
@@ -137,7 +137,7 @@ namespace GJK
         {
 //            ptic(ClassName()+"::FromPrimitives (PolytopeBase)");
 
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
 
             // Abusing serialized_data temporarily as working space.
             mptr<SReal> box_min = serialized_data + 1;
@@ -174,7 +174,7 @@ namespace GJK
         
         // array p is supposed to represent a matrix of size N x AMB_DIM
         virtual void FromPrimitives(
-            PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,      // primitive prototype
+            mref<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P,      // primitive prototype
             mptr<SReal> P_serialized,                  // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
@@ -183,7 +183,7 @@ namespace GJK
         {
 //            ptic(ClassName()+"::FromPrimitives (PrimitiveSerialized)");
 
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
             mptr<SReal> box_min = serialized_data + 1;
@@ -275,7 +275,7 @@ namespace GJK
         }
                 
         
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
             // Could be implemented more efficiently, but since this routine is unlikely to be used...
             min_val = MinSupportVector( dir, &this->Real_buffer[0] );
@@ -314,9 +314,9 @@ namespace GJK
             return d2;
         }
         
-        void Merge( SReal * C_Serialized, const Int i = 0 ) const
+        void Merge( mptr<SReal> C_Serialized, const Int i = 0 ) const
         {
-            SReal * p = C_Serialized + SIZE * i;
+            mptr<SReal> p = C_Serialized + SIZE * i;
             
             if( serialized_data != p )
             {

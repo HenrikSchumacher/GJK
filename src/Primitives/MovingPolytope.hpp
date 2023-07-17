@@ -75,7 +75,7 @@ namespace GJK
             return SIZE;
         }
         
-        virtual void FromCoordinates( const ExtReal * const p_, const Int i = 0 ) override
+        virtual void FromCoordinates( cptr<ExtReal> p_, const Int i = 0 ) override
         {
             // Supposed to do the same as Polytope<POINT_COUNT,AMB_DIM,...>::FromCoordinates + ReadCoordinatesSerialized. Meant primarily for debugging purposes; in practice, we will typically used LoadCoordinatesSerialized from already serialized data.
             GJK_tic(ClassName()+"::FromCoordinates");
@@ -123,7 +123,7 @@ namespace GJK
             GJK_toc(ClassName()+"::FromCoordinates");
         }
         
-        virtual void WriteCoordinatesSerialized( SReal * const p_serialized, const Int i = 0 ) const override
+        virtual void WriteCoordinatesSerialized( mptr<SReal> p_serialized, const Int i = 0 ) const override
         {
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::ReadCoordinatesSerialized");
@@ -600,25 +600,12 @@ namespace GJK
                     value_at_b += x + b * y;
                 }
                 
-                if( value_at_a < min_at_a )
-                {
-                    min_at_a = value_at_a;
-                }
                 
-                if( value_at_b < min_at_b )
-                {
-                    min_at_b = value_at_b;
-                }
-                
-                if( value_at_a > max_at_a )
-                {
-                    max_at_a = value_at_a;
-                }
-                
-                if( value_at_b > max_at_b )
-                {
-                    max_at_b = value_at_b;
-                }
+                min_at_a = std::min( value_at_a, min_at_a );
+                max_at_a = std::max( value_at_a, max_at_a );
+                min_at_b = std::min( value_at_b, min_at_b );
+                max_at_b = std::max( value_at_b, max_at_b );
+
             }
             
             const SReal aT = a * T;

@@ -45,16 +45,11 @@ namespace GJK
         }
         
         // Computes some point within the primitive and writes it to p.
-        virtual void InteriorPoint( Real * const point ) const override
+        virtual void InteriorPoint( mptr<Real> point ) const override
         {
-                  Real * restrict const p = point;
+            Int count = Scalar::Zero<Int>;
             
-            Int count = static_cast<Int>(0);
-            
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                p[k] = Scalar::One<Real>;
-            }
+            zerofy_buffer<AMB_DIM>(point);
             
             for( Int i = 0; i < HULL_COUNT; ++i )
             {
@@ -65,28 +60,22 @@ namespace GJK
                     
                     for( Int k = 0; k < AMB_DIM; ++k )
                     {
-                        p[k] += this->buffer[k];
+                        point[k] += this->buffer[k];
                     }
                 }
             }
             
             count = std::max( static_cast<Int>(1), count );
             
-            Real scale = Scalar::Inv<Real>(count);
-            
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                p[k] *= scale;
-            }
+            scale_buffer<AMB_DIM>( Scalar::Inv<Real>(count), point );
         }
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            Real * restrict const s = supp;
-            Real * restrict const b = &this->buffer[0];
-            Real * restrict const b_max = &this->buffer[AMB_DIM];
+            mptr<Real> b = &this->buffer[0];
+            mptr<Real> b_max = &this->buffer[AMB_DIM];
             Real maximum = std::numeric_limits<Real>::lowest();
             Real value;
             
@@ -104,21 +93,17 @@ namespace GJK
                 }
             }
             
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                s[k] = b_max[k];
-            }
+            copy_buffer<AMB_DIM>( b_max, supp );
 
             return maximum;
         }
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            Real * restrict const s = supp;
-            Real * restrict const b = &this->buffer[0];
-            Real * restrict const b_min = &this->buffer[AMB_DIM];
+            mptr<Real> b     = &this->buffer[0];
+            mptr<Real> b_min = &this->buffer[AMB_DIM];
             Real minimum = std::numeric_limits<Real>::max();
             Real value;
             
@@ -136,15 +121,12 @@ namespace GJK
                 }
             }
             
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                s[k] = b_min[k];
-            }
+            copy_buffer<AMB_DIM>( b_min, supp );
 
             return minimum;
         }
         
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
             min_val = MinSupportVector( dir, &this->buffer[0] );
             max_val = MaxSupportVector( dir, &this->buffer[AMB_DIM] );

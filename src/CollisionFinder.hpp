@@ -20,8 +20,8 @@ namespace GJK
         CLASS() {};
 
         CLASS(
-            const MovingPrimitive_T & P_,
-            const MovingPrimitive_T & Q_,
+            cref<MovingPrimitive_T> P_,
+            cref<MovingPrimitive_T> Q_,
             const SReal TOL
         )
         :   P{ P_.Clone() }
@@ -60,8 +60,8 @@ namespace GJK
 //        }
         
         SReal FindMaximumSafeStepSize(
-            const SReal * const p, const SReal * const u,
-            const SReal * const q, const SReal * const v,
+            cptr<SReal> p, cptr<SReal> u,
+            cptr<SReal> q, cptr<SReal> v,
             const SReal tinit,
             const bool reuse_direction = true
         ) const

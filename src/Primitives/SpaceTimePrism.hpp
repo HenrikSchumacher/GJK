@@ -1,7 +1,7 @@
 #pragma once
 
-#define CLASS SpaceTimePrism
-#define BASE  PrimitiveBase<AMB_DIM,Real,Int>
+#define CLASS   SpaceTimePrism
+#define BASE    PrimitiveBase<AMB_DIM,Real,Int>
 #define PROTO_T PrimitiveSerialized<AMB_DIM+1,Real,Int,SReal>
 
 namespace GJK
@@ -74,77 +74,66 @@ namespace GJK
         }
         
         // Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            Real supp_0 [AMB_DIM];
-            Real supp_1 [AMB_DIM];
+            Tiny::Vector<AMB_DIM,Real,Int> supp_0;
+            Tiny::Vector<AMB_DIM,Real,Int> supp_1;
             
-            Real h_0 = proto_0->MaxSupportVector(dir, supp);
+            Real h_0 = proto_0->MaxSupportVector( dir, supp_0.data() );
             h_0 += dir[AMB_DIM] * t_0;
-            Real h_1 = proto_0->MaxSupportVector(dir, supp);
+            Real h_1 = proto_0->MaxSupportVector( dir, supp_1.data() );
             h_1 += dir[AMB_DIM] * t_1;
             
             if( h_0 >= h_1 )
             {
-                for( Int i = 0; i < AMB_DIM; ++i )
-                {
-                    supp[i] = supp_0[i];
-                }
+                supp_0.Write(supp);
                 supp[AMB_DIM] = t_0;
                 return h_0;
             }
             {
-                for( Int i = 0; i < AMB_DIM; ++i )
-                {
-                    supp[i] = supp_1[i];
-                }
+                supp_1.Write(supp);
                 supp[AMB_DIM] = t_1;
                 return h_1;
             }
         }
         
         // Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            Real supp_0 [AMB_DIM];
-            Real supp_1 [AMB_DIM];
+            Tiny::Vector<AMB_DIM,Real,Int> supp_0;
+            Tiny::Vector<AMB_DIM,Real,Int> supp_1;
             
             Real h_0 = dir[AMB_DIM] * t_0;
-            h_0 += proto_0->MinSupportVector(dir, supp);
+            h_0 += proto_0->MinSupportVector( dir, supp_0.data() );
             
             Real h_1 = dir[AMB_DIM] * t_1;
-            h_1 += proto_0->MinSupportVector(dir, supp);
+            h_1 += proto_0->MinSupportVector( dir, supp_1.data() );
 
             
             if( h_0 <= h_1 )
             {
-                for( Int i = 0; i < AMB_DIM; ++i )
-                {
-                    supp[i] = supp_0[i];
-                }
+                supp_0.Write(supp);
                 supp[AMB_DIM] = t_0;
                 return h_0;
             }
+            else
             {
-                for( Int i = 0; i < AMB_DIM; ++i )
-                {
-                    supp[i] = supp_1[i];
-                }
+                supp_1.Write(supp);
                 supp[AMB_DIM] = t_1;
                 return h_1;
             }
         }
         
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
             Real min_0;
             Real max_0;
             Real min_1;
             Real max_1;
             
-            proto_0->MinMaxSupportValue( dir, min_0, max_0);
-            proto_1->MinMaxSupportValue( dir, min_1, max_1);
+            proto_0->MinMaxSupportValue( dir, min_0, max_0 );
+            proto_1->MinMaxSupportValue( dir, min_1, max_1 );
             
             min_0 += t_0 * dir[AMB_DIM];
             max_0 += t_0 * dir[AMB_DIM];
@@ -157,7 +146,7 @@ namespace GJK
         }
         
         // Returns some point within the primitive and writes it to p.
-        virtual void InteriorPoint( Real * const p ) const override
+        virtual void InteriorPoint( mptr<Real> p ) const override
         {
             Real p_0 [AMB_DIM];
             Real p_1 [AMB_DIM];

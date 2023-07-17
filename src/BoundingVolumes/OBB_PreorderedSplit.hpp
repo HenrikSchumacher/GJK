@@ -63,7 +63,7 @@ public:
             zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             SReal * restrict const average    = serialized_data + 1;
             SReal * restrict const covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
@@ -188,7 +188,7 @@ public:
             zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             SReal * restrict const average    = serialized_data + 1;
             SReal * restrict const covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
             

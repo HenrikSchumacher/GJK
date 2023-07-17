@@ -51,55 +51,33 @@ namespace GJK
         
     public:
         
-        virtual void FromCoordinates( const ExtReal * const coords, const Int i = 0 ) const
+        virtual void FromCoordinates( cptr<ExtReal> coords, const Int i = 0 ) const
         {
             serialized_data[0] = Scalar::Zero<SReal>;
             
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                serialized_data[k+1] = static_cast<SReal>( coords[ AMB_DIM * i + k ] );
-            }
+            copy_buffer<AMB_DIM>( coords, &serialized_data[1] );
         }
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( cptr<Real> v, mptr<Real> s ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            cptr<SReal> c = &serialized_data[1];
-
-            Real value = static_cast<Real>(c[0]) * v[0];
+            copy_buffer<AMB_DIM>( &serialized_data[1], supp );
             
-            s[0] = c[0];
-            
-            for( Int k = 1; k < AMB_DIM; ++k )
-            {
-                value += static_cast<Real>(c[k]) * v[k];
-                s[k] = c[k];
-            }
-
-            return value;
+            return dot_buffer<AMB_DIM>( dir, supp );
         }
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( cptr<Real> v, mptr<Real> s ) const override
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            return MinSupportVector( v, s );
+            return MinSupportVector( dir, supp );
         }
 
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( cptr<Real> v, mref<Real> min_val, mref<Real> max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
-            cptr<SReal> center = &serialized_data[1];
-
-            Real value = static_cast<Real>(center[0]) * v[0];
-            
-            for( Int k = 1; k < AMB_DIM; ++k )
-            {
-                value += static_cast<Real>(center[k]) * v[k];
-            }
-            
-            min_val = value;
-            max_val = value;
+            min_val = dot_buffer<AMB_DIM>( &serialized_data[1], dir );
+            max_val = min_val;
         }
         
         
