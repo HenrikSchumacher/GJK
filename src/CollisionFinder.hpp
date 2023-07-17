@@ -152,7 +152,7 @@ namespace GJK
 //                wprint(ClassName()+"::FindMaximumSafeStepSize: max_iter = "+ToString(max_iter)+" reached." );
                 GJK_toc(ClassName()+"::FindMaximumSafeStepSize");
                 //DEBUGGING
-                print("iter >= max_iter");
+                wprint("iter >= max_iter");
                 return static_cast<SReal>(a);
             }
             

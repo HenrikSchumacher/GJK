@@ -63,9 +63,9 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( ptr<Real> v, mut<Real> s ) const override
+        virtual Real MinSupportVector( cptr<Real> v, mptr<Real> s ) const override
         {
-            ptr<SReal> c = &serialized_data[1];
+            cptr<SReal> c = &serialized_data[1];
 
             Real value = static_cast<Real>(c[0]) * v[0];
             
@@ -81,15 +81,15 @@ namespace GJK
         }
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( ptr<Real> v, mut<Real> s ) const override
+        virtual Real MaxSupportVector( cptr<Real> v, mptr<Real> s ) const override
         {
             return MinSupportVector( v, s );
         }
 
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( ptr<Real> v, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> v, mref<Real> min_val, mref<Real> max_val ) const override
         {
-            ptr<SReal> center = &serialized_data[1];
+            cptr<SReal> center = &serialized_data[1];
 
             Real value = static_cast<Real>(center[0]) * v[0];
             
@@ -106,7 +106,7 @@ namespace GJK
         // Helper function to compute axis-aligned bounding boxes. in the format of box_min, box_max vector.
         // box_min, box_max are supposed to be vectors of size AMB_DIM.
         // BoxMinMax computes the "lower left" lo and "upper right" hi vectors of the primitives bounding box and sets box_min = min(lo, box_min) and box_max = min(h, box_max)
-        virtual void BoxMinMax( SReal * const box_min_, SReal * const box_max_ ) const
+        virtual void BoxMinMax( mptr<SReal> box_min_, mptr<SReal> box_max_ ) const
         {
             copy_buffer<AMB_DIM>( &serialized_data[1], box_min_ );
             copy_buffer<AMB_DIM>( &serialized_data[1], box_max_ );

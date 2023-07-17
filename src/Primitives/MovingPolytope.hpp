@@ -128,7 +128,7 @@ namespace GJK
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::ReadCoordinatesSerialized");
             
-            mut<SReal> p__ = &p_serialized[COORD_SIZE * i];
+            mptr<SReal> p__ = &p_serialized[COORD_SIZE * i];
             
             p__[0] = r * r;
             
@@ -138,12 +138,12 @@ namespace GJK
             GJK_toc(ClassName()+"::ReadCoordinatesSerialized");
         }
         
-        virtual void ReadCoordinatesSerialized( const SReal * const p_serialized, const Int i = 0 ) override
+        virtual void ReadCoordinatesSerialized( cptr<SReal> p_serialized, const Int i = 0 ) override
         {
             // Write to serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteCoordinatesSerialized");
             
-            ptr<SReal> p__ = &p_serialized[COORD_SIZE * i];
+            cptr<SReal> p__ = &p_serialized[COORD_SIZE * i];
             
             r = std::sqrt(p__[0]);
             
@@ -155,7 +155,7 @@ namespace GJK
         
 
         
-        virtual void FromVelocities( const ExtReal * const v_, const Int i = 0 ) override
+        virtual void FromVelocities( cptr<ExtReal> v_, const Int i = 0 ) override
         {
             GJK_tic(ClassName()+"::FromVelocities");
 
@@ -207,11 +207,11 @@ namespace GJK
             GJK_toc(ClassName()+"::FromVelocities");
         }
         
-        virtual void FromVelocitiesIndexList( const ExtReal * const v_, const ExtInt * const tuples, const Int i = 0 ) override
+        virtual void FromVelocitiesIndexList( cptr<ExtReal> v_, cptr<ExtInt> tuples, const Int i = 0 ) override
         {
             GJK_tic(ClassName()+"::FromVelocitiesIndexList");
             
-            ptr<ExtInt> s = tuples + POINT_COUNT * i;
+            cptr<ExtInt> s = tuples + POINT_COUNT * i;
             
             {
                 for( Int k = 0; k < AMB_DIM; ++k )
@@ -264,12 +264,12 @@ namespace GJK
         }
         
         
-        virtual void WriteVelocitiesSerialized( SReal * const v_serialized, const Int i = 0 ) const override
+        virtual void WriteVelocitiesSerialized( mptr<SReal> v_serialized, const Int i = 0 ) const override
         {
             // Loads from serialized data as stored by Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteVelocitiesSerialized");
             
-            mut<SReal> v__ = &v_serialized[VELOC_SIZE * i];
+            mptr<SReal> v__ = &v_serialized[VELOC_SIZE * i];
             
             v__[0] = w;
             
@@ -281,12 +281,12 @@ namespace GJK
             GJK_toc(ClassName()+"::WriteVelocitiesSerialized");
         }
         
-        virtual void ReadVelocitiesSerialized( const SReal * const v_serialized, const Int i = 0 ) override
+        virtual void ReadVelocitiesSerialized( cptr<SReal> v_serialized, const Int i = 0 ) override
         {
             // Reads from serialized data as stored by WriteVelocitiesSerialized
             GJK_tic(ClassName()+"::ReadVelocitiesSerialized");
             
-            ptr<SReal> v__ = &v_serialized[VELOC_SIZE * i];
+            cptr<SReal> v__ = &v_serialized[VELOC_SIZE * i];
             
             w = v__[0];
             
@@ -300,12 +300,12 @@ namespace GJK
 
         
         
-        virtual void WriteDeformedSerialized( SReal * const p_serialized, const SReal t, const Int i = 0 ) const override
+        virtual void WriteDeformedSerialized( mptr<SReal> p_serialized, const SReal t, const Int i = 0 ) const override
         {
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteDeformedSerialized");
             
-            SReal * restrict const p = p_serialized + COORD_SIZE * i;
+            mptr<SReal> p = p_serialized + COORD_SIZE * i;
             
 //            p[0] = r * r;
             
@@ -340,7 +340,7 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
             GJK_tic(ClassName()+"::MaxSupportVector");
             
@@ -445,7 +445,7 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
             GJK_tic(ClassName()+"::MinSupportVector");
             
@@ -546,7 +546,9 @@ namespace GJK
         
         
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue(
+            cptr<Real> dir, mref<Real> min_val, mref<Real> max_val
+        ) const override
         {
             GJK_tic(ClassName()+"::MinMaxSupportValue");
             
@@ -634,7 +636,7 @@ namespace GJK
         }
         
         // Returns some point within the primitive and writes it to p.
-        virtual void InteriorPoint( Real * const p ) const override
+        virtual void InteriorPoint( mptr<Real> p ) const override
         {
             GJK_tic(ClassName()+"::InteriorPoint");
             

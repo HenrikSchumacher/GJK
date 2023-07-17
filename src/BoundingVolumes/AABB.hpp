@@ -79,16 +79,16 @@ namespace GJK
     public:
         
         // array p is suppose to represent a matrix of size N x AMB_DIM
-        void FromPointCloud( const SReal * const coords_in, const Int N ) const override
+        void FromPointCloud( cptr<SReal> coords_in, const Int N ) const override
         {
 //            tic(ClassName()+"::FromPointCloud");
             SReal & r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
-                  mut<SReal> box_min = serialized_data + 1;
-                  mut<SReal> box_max = serialized_data + 1 + AMB_DIM;
+                  mptr<SReal> box_min = serialized_data + 1;
+                  mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
-            ptr<SReal> coords = coords_in;
+            cptr<SReal> coords = coords_in;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -128,8 +128,8 @@ namespace GJK
 
         // array p is supposed to represent a matrix of size N x AMB_DIM
         void FromPrimitives(
-            PolytopeBase<AMB_DIM,Real,Int,SReal> & P,  // primitive prototype
-            mut<SReal> P_serialized,                // serialized data of primitives
+            mref<PolytopeBase<AMB_DIM,Real,Int,SReal>> P,  // primitive prototype
+            mptr<SReal> P_serialized,                // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
             Int thread_count = 1                       // how many threads to utilize
@@ -140,8 +140,8 @@ namespace GJK
             SReal & r2 = serialized_data[0];
 
             // Abusing serialized_data temporarily as working space.
-            mut<SReal> box_min = serialized_data + 1;
-            mut<SReal> box_max = serialized_data + 1 + AMB_DIM;
+            mptr<SReal> box_min = serialized_data + 1;
+            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -175,7 +175,7 @@ namespace GJK
         // array p is supposed to represent a matrix of size N x AMB_DIM
         virtual void FromPrimitives(
             PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,      // primitive prototype
-            mut<SReal> P_serialized,                  // serialized data of primitives
+            mptr<SReal> P_serialized,                  // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
             Int thread_count = 1                       // how many threads to utilize
@@ -186,8 +186,8 @@ namespace GJK
             SReal & r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
-            mut<SReal> box_min = serialized_data + 1;
-            mut<SReal> box_max = serialized_data + 1 + AMB_DIM;
+            mptr<SReal> box_min = serialized_data + 1;
+            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
         
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -230,10 +230,10 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( ptr<Real> v, mut<Real> s ) const override
+        virtual Real MaxSupportVector( cptr<Real> v, mptr<Real> s ) const override
         {
-            ptr<SReal> x = serialized_data + 1;
-            ptr<SReal> L = serialized_data + 1 + AMB_DIM;
+            cptr<SReal> x = serialized_data + 1;
+            cptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
             Real R2 = Scalar::Zero<Real>;
@@ -253,10 +253,10 @@ namespace GJK
 
 
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( ptr<Real> v, mut<Real> s ) const override
+        virtual Real MinSupportVector( cptr<Real> v, mptr<Real> s ) const override
         {
-            ptr<SReal> x = serialized_data + 1;
-            ptr<SReal> L = serialized_data + 1 + AMB_DIM;
+            cptr<SReal> x = serialized_data + 1;
+            cptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
             Real R2 = Scalar::Zero<Real>;
@@ -289,13 +289,13 @@ namespace GJK
         }
         
         
-        inline friend Real AABB_SquaredDistance( const CLASS & P, const CLASS & Q )
+        inline friend Real AABB_SquaredDistance( cref<CLASS> P, cref<CLASS> Q )
         {
-            ptr<SReal> P_x = P.serialized_data+1;              // center of box P
-            ptr<SReal> P_L = P.serialized_data+1+AMB_DIM;      // edge half-lengths of box P
+            cptr<SReal> P_x = P.serialized_data+1;              // center of box P
+            cptr<SReal> P_L = P.serialized_data+1+AMB_DIM;      // edge half-lengths of box P
             
-            ptr<SReal> Q_x = Q.serialized_data+1;              // center of box Q
-            ptr<SReal> Q_L = Q.serialized_data+1+AMB_DIM;      // edge half-lengths of box Q
+            cptr<SReal> Q_x = Q.serialized_data+1;              // center of box Q
+            cptr<SReal> Q_L = Q.serialized_data+1+AMB_DIM;      // edge half-lengths of box Q
             
             Real d2 = Scalar::Zero<Real>;
             
@@ -321,11 +321,11 @@ namespace GJK
             if( serialized_data != p )
             {
                 
-                mut<SReal> x1 = serialized_data + 1;
-                mut<SReal> L1 = serialized_data + 1 + AMB_DIM;
+                mptr<SReal> x1 = serialized_data + 1;
+                mptr<SReal> L1 = serialized_data + 1 + AMB_DIM;
                 
-                mut<SReal> x2 = p + 1;
-                mut<SReal> L2 = p + 1 + AMB_DIM;
+                mptr<SReal> x2 = p + 1;
+                mptr<SReal> L2 = p + 1 + AMB_DIM;
                 
                 SReal r2 = Scalar::Zero<SReal>;
                 

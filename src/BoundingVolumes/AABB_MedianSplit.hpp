@@ -108,7 +108,7 @@ namespace GJK
             // Computing score as pojection of the primitives' InteriorPoints on the longest axis.
             // Fill perm with the indices.
 
-            ptr<SReal> p = P_serialized + 1 + split_dir;
+            cptr<SReal> p = P_serialized + 1 + split_dir;
 
             for( Int i = begin; i < end; ++i )
             {
