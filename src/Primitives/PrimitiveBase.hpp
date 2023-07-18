@@ -9,7 +9,7 @@ namespace GJK
     // Int   -  integer type for return values and loops.
     
     template<int AMB_DIM, typename Real_, typename Int_>
-    class alignas( OBJECT_ALIGNMENT ) CLASS // Use this broad alignment to prevent false sharing.
+    class alignas(ObjectAlignment) CLASS // Use this broad alignment to prevent false sharing.
     {
         ASSERT_FLOAT(Real_);
         ASSERT_INT  (Int_ );

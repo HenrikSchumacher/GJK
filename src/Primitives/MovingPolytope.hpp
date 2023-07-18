@@ -8,7 +8,7 @@ namespace GJK
     
     template<int POINT_COUNT, int AMB_DIM, typename Real, typename Int, typename SReal,
         typename ExtReal, typename ExtInt>
-    class alignas( OBJECT_ALIGNMENT ) CLASS : public BASE
+    class alignas(ObjectAlignment) CLASS : public BASE
     {
 
         ASSERT_FLOAT(ExtReal);
@@ -710,7 +710,7 @@ namespace GJK
     
     template <int AMB_DIM, typename Real, typename Int, typename SReal,
         typename ExtReal = SReal, typename ExtInt = Int>
-    std::shared_ptr<BASE> MakeMovingPolytope( const Int P_size )
+    [[nodiscard]] std::shared_ptr<BASE> MakeMovingPolytope( const Int P_size )
     {
         switch( P_size )
         {

@@ -29,7 +29,7 @@ namespace GJK
     };
     
     template<int AMB_DIM, typename Real_, typename Int_>
-    class alignas( OBJECT_ALIGNMENT ) GJK_Algorithm
+    class alignas(ObjectAlignment) GJK_Algorithm
     {
         ASSERT_FLOAT(Real_);
         ASSERT_INT  (Int_ );
