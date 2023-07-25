@@ -40,9 +40,9 @@ namespace GJK
             return SIZE;
         }
         
-protected:
-
-        mutable Real self_buffer [SIZE];
+//protected:
+//
+//        mutable Real self_buffer [SIZE];
  
 public:
 

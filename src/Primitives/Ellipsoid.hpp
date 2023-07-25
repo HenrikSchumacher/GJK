@@ -41,9 +41,9 @@ namespace GJK
             return SIZE;
         }
                
-    private:
-
-        mutable SReal self_buffer [SIZE];
+//    private:
+//
+//        mutable SReal self_buffer [SIZE];
         
     public:
         

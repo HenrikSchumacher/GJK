@@ -65,9 +65,9 @@ namespace GJK
             return SIZE;
         }
         
-    protected:
-
-        mutable SReal self_buffer [1 + AMB_DIM + AMB_DIM];
+//    protected:
+//
+//        mutable SReal self_buffer [1 + AMB_DIM + AMB_DIM];
  
     public:
         

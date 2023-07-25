@@ -42,7 +42,7 @@ namespace GJK
     protected:
         
         using BASE::serialized_data;
-        using BASE::self_buffer;
+//        using BASE::self_buffer;
         
     public:
         

@@ -40,9 +40,9 @@ namespace GJK
             return SIZE;
         }
         
-    protected:
-
-        using BASE::self_buffer;
+//    protected:
+//
+//        using BASE::self_buffer;
  
     public:
 

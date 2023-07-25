@@ -41,9 +41,9 @@ namespace GJK
             return SIZE;
         }
 
-    protected:
-
-        mutable SReal self_buffer [SIZE];
+//    protected:
+//
+//        mutable SReal self_buffer [SIZE];
         
 #include "Primitive_Common.hpp"
         
