@@ -53,8 +53,6 @@ namespace GJK
         
     public:
         
-//#include "../Primitives/Primitive_BoilerPlate.hpp"
-        
         __ADD_CLONE_CODE__(CLASS)
     
     public:
@@ -129,7 +127,7 @@ namespace GJK
             
             // It can happen then the InteriorPoints of all primitives lie on one side of mid because mid is the center of the bounding box of the primitives --- and not the center of the bounding box of the InteriorPoints! This guarantees that at least one point is split off the cluster.
 
-//            split_index = std::min( std::max( begin + 1, split_index), end - 1 );
+//            split_index = Min( Max( begin + 1, split_index), end - 1 );
             
             if( (split_index == begin) || (split_index == end) )
             {

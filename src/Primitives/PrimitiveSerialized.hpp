@@ -32,7 +32,7 @@ namespace GJK
         mutable SReal SReal_buffer [AMB_DIM * (AMB_DIM+1)];
         mutable  Real  Real_buffer [AMB_DIM * (AMB_DIM+1)];
         
-        SReal * serialized_data = nullptr;
+        SReal * restrict serialized_data = nullptr;
         
     public:
         
@@ -64,9 +64,10 @@ namespace GJK
         //      begin = p_ + Size() * pos
         // and
         //      end   = p_ + Size() * (pos+1).
-        virtual void SetPointer( SReal * const p_, const Int pos ) = 0;
+        virtual void SetPointer( mptr<SReal> p_, const Int pos ) = 0;
         
-        virtual void SetPointer( SReal * const p_ ) = 0;
+        virtual void SetPointer( mptr<SReal> p_ ) = 0;
+        
         
         virtual void PrintPointer() const
         {
@@ -74,18 +75,12 @@ namespace GJK
         }
         
         // Returns some point within the primitive and writes it to p.
-        void InteriorPoint( Real * const point_out ) const override
+        void InteriorPoint( mptr<Real> point_out ) const override
         {
 //            print(ClassName()+"::InteriorPoint");
-            if( this->serialized_data )
+            if( this->serialized_data != nullptr )
             {
-                       Real * restrict const point = point_out;
-                const SReal * restrict const p = this->serialized_data + 1;
-                
-                for( Int k = 0; k < AMB_DIM; ++k )
-                {
-                    point[k] = static_cast<Real>(p[k]);
-                }
+                copy_buffer<AMB_DIM>( &this->serialized_data[1], point_out );
             }
             else
             {
@@ -125,17 +120,17 @@ namespace GJK
 //        virtual void Copy( const Real * const p_in , const Int i, Real * const q_out, const Int j ) const = 0;
 
         
-        virtual void Read( const SReal * const p_in ) const = 0;
+        virtual void Read( cptr<SReal> p_in ) const = 0;
         
-        virtual void Read( const SReal * const p_in, const Int i ) const = 0;
+        virtual void Read( cptr<SReal> p_in, const Int i ) const = 0;
         
-        virtual void Write(      SReal * const q_out ) const = 0;
+        virtual void Write( mptr<SReal> q_out ) const = 0;
         
-        virtual void Write(      SReal * const q_out, const Int j ) const = 0;
+        virtual void Write( mptr<SReal> q_out, const Int j ) const = 0;
         
-        virtual void Swap( SReal * const p_out, SReal * const q_out ) const = 0;
+        virtual void Swap( mptr<SReal> p_out, mptr<SReal> q_out ) const = 0;
         
-        virtual void Swap( SReal * const p_out, const Int i, SReal * const q_out, const Int j ) const = 0;
+        virtual void Swap( mptr<SReal> p_out, const Int i, mptr<SReal> q_out, const Int j ) const = 0;
         
     public:
 

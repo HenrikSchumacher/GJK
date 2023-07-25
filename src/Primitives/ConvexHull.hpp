@@ -65,9 +65,9 @@ namespace GJK
                 }
             }
             
-            count = std::max( static_cast<Int>(1), count );
+            count = Max( static_cast<Int>(1), count );
             
-            scale_buffer<AMB_DIM>( Scalar::Inv<Real>(count), point );
+            scale_buffer<AMB_DIM>( Inv<Real>(count), point );
         }
         
         
@@ -147,7 +147,7 @@ namespace GJK
             {
                 if( primitive[i] )
                 {
-                    squared_radius = std::max( squared_radius, primitive[i]->SquaredRadius() );
+                    squared_radius = Max( squared_radius, primitive[i]->SquaredRadius() );
                 }
             }
             

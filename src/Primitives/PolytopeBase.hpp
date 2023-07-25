@@ -66,7 +66,7 @@ namespace GJK
         // Helper function to compute axis-aligned bounding boxes. in the format of box_min, box_max vector.
         // box_min, box_max are supposed to be vectors of size AMB_DIM.
         // BoxMinMax computes the "lower left" lo and "upper right" hi vectors of the primitives bounding box and sets box_min = min(lo, box_min) and box_max = min(h, box_max)
-        virtual void BoxMinMax( SReal * const box_min, SReal * const box_max ) const  = 0;
+        virtual void BoxMinMax( mptr<SReal> box_min, mptr<SReal> box_max ) const  = 0;
 
 //
 //        friend void swap(PolytopeBase &A, PolytopeBase &B) noexcept

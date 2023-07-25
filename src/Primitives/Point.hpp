@@ -45,7 +45,7 @@ namespace GJK
 
         mutable SReal self_buffer [SIZE];
         
-#include "Primitive_BoilerPlate.hpp"
+#include "Primitive_Common.hpp"
         
         __ADD_CLONE_CODE__(CLASS)
         

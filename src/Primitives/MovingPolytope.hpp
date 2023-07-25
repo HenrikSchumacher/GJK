@@ -95,7 +95,7 @@ namespace GJK
                 }
             }
 
-            constexpr SReal factor = (Scalar::Inv<SReal>(POINT_COUNT));
+            constexpr SReal factor = Inv<SReal>(POINT_COUNT);
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -115,10 +115,10 @@ namespace GJK
                     diff = positions[j][k] - av_position[k];
                     square += diff * diff;
                 }
-                r_2 = std::max( r_2, square );
+                r_2 = Max( r_2, square );
             }
             
-            r = std::sqrt(r_2);
+            r = Sqrt(r_2);
             
             GJK_toc(ClassName()+"::FromCoordinates");
         }
@@ -145,7 +145,7 @@ namespace GJK
             
             cptr<SReal> p__ = &p_serialized[COORD_SIZE * i];
             
-            r = std::sqrt(p__[0]);
+            r = Sqrt(p__[0]);
             
             copy_buffer<AMB_DIM              >( &p__[1],         &av_position[0] );
             copy_buffer<AMB_DIM * POINT_COUNT>( &p__[1+AMB_DIM], &positions[0][0] );
@@ -176,7 +176,7 @@ namespace GJK
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                av_velocity[k] *= (Scalar::Inv<SReal>(POINT_COUNT));
+                av_velocity[k] *= Inv<SReal>(POINT_COUNT);
             }
 
             SReal v_2 = Scalar::Zero<SReal>;
@@ -186,7 +186,7 @@ namespace GJK
             {
                 v_2 += av_velocity[k] * av_velocity[k];
             }
-            v = std::sqrt(v_2);
+            v = Sqrt(v_2);
 
             // Compute radius.
             SReal w_2 = Scalar::Zero<SReal>;
@@ -200,9 +200,9 @@ namespace GJK
                     diff = velocities[j][k] - av_velocity[k];
                     square += diff * diff;
                 }
-                w_2 = std::max( w_2, square );
+                w_2 = Max( w_2, square );
             }
-            w = std::sqrt(w_2);
+            w = Sqrt(w_2);
 
             GJK_toc(ClassName()+"::FromVelocities");
         }
@@ -232,7 +232,7 @@ namespace GJK
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                av_velocity[k] *= (Scalar::Inv<SReal>(POINT_COUNT));
+                av_velocity[k] *= Inv<SReal>(POINT_COUNT);
             }
             
             SReal v_2 = Scalar::Zero<SReal>;
@@ -242,7 +242,7 @@ namespace GJK
             {
                 v_2 += av_velocity[k] * av_velocity[k];
             }
-            v = std::sqrt(v_2);
+            v = Sqrt(v_2);
             
             // Compute radius.
             SReal w_2 = Scalar::Zero<SReal>;
@@ -256,9 +256,9 @@ namespace GJK
                     diff = velocities[j][k] - av_velocity[k];
                     square += diff * diff;
                 }
-                w_2 = std::max( w_2, square );
+                w_2 = Max( w_2, square );
             }
-            w = std::sqrt(w_2);
+            w = Sqrt(w_2);
             
             GJK_toc(ClassName()+"::FromVelocitiesIndexList");
         }
@@ -329,7 +329,7 @@ namespace GJK
                     r2_local += diff * diff;
                 }
                 
-                r2 = std::max(r2,r2_local);
+                r2 = Max(r2,r2_local);
             }
             
             p[0] = r2;
@@ -601,10 +601,10 @@ namespace GJK
                 }
                 
                 
-                min_at_a = std::min( value_at_a, min_at_a );
-                max_at_a = std::max( value_at_a, max_at_a );
-                min_at_b = std::min( value_at_b, min_at_b );
-                max_at_b = std::max( value_at_b, max_at_b );
+                min_at_a = Min( value_at_a, min_at_a );
+                max_at_a = Max( value_at_a, max_at_a );
+                min_at_b = Min( value_at_b, min_at_b );
+                max_at_b = Max( value_at_b, max_at_b );
 
             }
             
@@ -616,8 +616,8 @@ namespace GJK
             min_at_b += bT * vec[AMB_DIM];
             max_at_b += bT * vec[AMB_DIM];
             
-            min_val = static_cast<Real>(std::min(min_at_a, min_at_b));
-            max_val = static_cast<Real>(std::max(max_at_a, max_at_b));
+            min_val = static_cast<Real>(Min(min_at_a, min_at_b));
+            max_val = static_cast<Real>(Max(max_at_a, max_at_b));
             
             GJK_toc(ClassName()+"::MinMaxSupportValue");
         }
@@ -663,7 +663,7 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::SquaredRadius");
             
-            const SReal s = Scalar::Half<SReal> * std::abs(b-a);
+            const SReal s = Scalar::Half<SReal> * Abs(b-a);
             const SReal x = s * v + r + w * b;
             const SReal y = s * T;
             

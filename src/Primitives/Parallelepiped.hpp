@@ -50,7 +50,7 @@ namespace GJK
         
     public:
         
-#include "Primitive_BoilerPlate.hpp"
+#include "Primitive_Common.hpp"
         
         __ADD_CLONE_CODE__(CLASS)
         
@@ -94,7 +94,7 @@ namespace GJK
                         dot += A[AMB_DIM*k+i]*A[AMB_DIM*k+j];
                     }
                     
-                    dots += std::abs( dot );
+                    dots += Abs( dot );
                 }
 
             }

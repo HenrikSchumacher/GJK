@@ -47,7 +47,7 @@ namespace GJK
         
     public:
         
-#include "Primitive_BoilerPlate.hpp"
+#include "Primitive_Common.hpp"
         
         __ADD_CLONE_CODE__(CLASS)
         
@@ -79,7 +79,7 @@ namespace GJK
 
             for( Int i = 1; i < AMB_DIM; ++i )
             {
-                r2 = std::max( r2, this->SReal_buffer[i]);
+                r2 = Max( r2, this->SReal_buffer[i]);
             }
             
         }
@@ -105,7 +105,7 @@ namespace GJK
                 R1 += b[i] * b[i];
             }
             
-            R1 = Scalar::One<Real> / std::sqrt(R1);
+            R1 = InvSqrt(R1);
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -115,8 +115,8 @@ namespace GJK
             // Now this->Real_buffer is the max support vector on the unit sphere belonging to the director transform * dir.
             
             R1 = Scalar::Zero<Real>;
+            
             // Transform the point back to the ellipsoid.
-
             for( Int i = 0; i < AMB_DIM; ++i )
             {
                 supp[i] = x[i] + static_cast<Real>(A[i]) * b[0];
@@ -154,7 +154,7 @@ namespace GJK
                 R1 += b[i] * b[i];
             }
             
-            R1 = -Scalar::Inv<Real>(std::sqrt(R1));
+            R1 = -InvSqrt(R1);
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {

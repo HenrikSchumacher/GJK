@@ -47,7 +47,7 @@ protected:
  
 public:
 
-#include "../Primitives/Primitive_BoilerPlate.hpp"
+#include "../Primitives/Primitive_Common.hpp"
         
         
         // Array coords_in is supposes to represent a matrix of size n x AMB_DIM
@@ -78,7 +78,7 @@ public:
                 }
             }
 
-            const Real n_inv = Scalar::Inv<Real>(n);
+            const Real n_inv = Inv<Real>(n);
             
             scale_buffer<AMB_DIM>(n_inv,average);
             
@@ -136,8 +136,8 @@ public:
                         x += p[k] * vec[k];
                     }
 
-                    box_min[j] = std::min( box_min[j], x );
-                    box_max[j] = std::max( box_max[j], x );
+                    box_min[j] = Min( box_min[j], x );
+                    box_max[j] = Max( box_max[j], x );
                 }
             }
 
@@ -205,7 +205,7 @@ public:
                 }
             }
 
-            const SReal n_inv = Scalar::Inv<Real>(end-begin);
+            const SReal n_inv = Inv<Real>(end-begin);
 
             scale_buffer<AMB_DIM>(n_inv,average);
             
@@ -257,8 +257,8 @@ public:
                     SReal min_val;
                     SReal max_val;
                     P.MinMaxSupportValue( covariance + AMB_DIM * j, min_val, max_val );
-                    box_min[j] = std::min( box_min[j], min_val );
-                    box_max[j] = std::max( box_max[j], max_val );
+                    box_min[j] = Min( box_min[j], min_val );
+                    box_max[j] = Max( box_max[j], max_val );
                 }
             }
             

@@ -141,8 +141,8 @@ namespace GJK
             min_0 += t_1 * dir[AMB_DIM];
             max_0 += t_1 * dir[AMB_DIM];
             
-            min_val = std::min(min_0,min_1);
-            max_val = std::max(max_0,max_1);
+            min_val = Min(min_0,min_1);
+            max_val = Max(max_0,max_1);
         }
         
         // Returns some point within the primitive and writes it to p.
@@ -176,9 +176,9 @@ namespace GJK
         // Returns some (upper bound of the) squared radius of the primitive as measured from the result of InteriorPoint.
         virtual Real SquaredRadius() const override
         {
-            Real r_0 = std::sqrt(proto_0->SquaredRadius());
-            Real r_1 = std::sqrt(proto_1->SquaredRadius());
-            Real r   = Scalar::Quarter<Real> * std::abs( t_1 - t_0 ) + std::max(r_0,r_1);
+            Real r_0 = Sqrt(proto_0->SquaredRadius());
+            Real r_1 = Sqrt(proto_1->SquaredRadius());
+            Real r   = Scalar::Quarter<Real> * Abs( t_1 - t_0 ) + Max(r_0,r_1);
             return r * r;
         }
 

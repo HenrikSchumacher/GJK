@@ -51,7 +51,7 @@ namespace GJK
 
         mutable SReal self_buffer [SIZE];
         
-#include "Primitive_BoilerPlate.hpp"
+#include "Primitive_Common.hpp"
         
         __ADD_CLONE_CODE__(CLASS)
         
@@ -59,7 +59,7 @@ namespace GJK
         
         virtual void FromCoordinates( cptr<ExtReal> hull_coords_, const Int i = 0 ) const override
         {
-            constexpr SReal w = Scalar::Inv<SReal>(POINT_COUNT);
+            constexpr SReal w = Inv<SReal>(POINT_COUNT);
             
             mref<SReal> r2 = this->serialized_data[0];
             
@@ -97,7 +97,7 @@ namespace GJK
                     diff = A[ AMB_DIM * j + k] - center[k];
                     square += diff * diff;
                 }
-                r2 = std::max( r2, square );
+                r2 = Max( r2, square );
             }
         }
         
@@ -105,7 +105,7 @@ namespace GJK
         {
             cptr<ExtInt> s = tuples + POINT_COUNT * i;
             
-            constexpr SReal w = Scalar::Inv<SReal>(POINT_COUNT);
+            constexpr SReal w = Inv<SReal>(POINT_COUNT);
             
             mref<SReal> r2          = this->serialized_data[0];
             mptr<SReal> center      = &this->serialized_data[1];
@@ -142,7 +142,7 @@ namespace GJK
                     diff = hull_coords[ AMB_DIM * j + k] - center[k];
                     square += diff * diff;
                 }
-                r2 = std::max( r2, square );
+                r2 = Max( r2, square );
             }
         }
         
@@ -226,8 +226,8 @@ namespace GJK
             {
                 value = dot_buffers<AMB_DIM>( &A[ AMB_DIM * j ], dir );
 
-                min_val = std::min( min_val, value );
-                max_val = std::max( max_val, value );
+                min_val = Min( min_val, value );
+                max_val = Max( max_val, value );
             }
             
 //            ptoc(ClassName()+"::MinMaxSupportValue");
@@ -237,21 +237,19 @@ namespace GJK
         // Helper function to compute axis-aligned bounding boxes. in the format of box_min, box_max vector.
         // box_min, box_max are supposed to be vectors of size AMB_DIM.
         // BoxMinMax computes the "lower left" lo and "upper right" hi vectors of the primitives bounding box and sets box_min = min(lo, box_min) and box_max = min(h, box_max)
-        virtual void BoxMinMax( mptr<SReal> box_min_, mptr<SReal> box_max_ ) const override
+        virtual void BoxMinMax( mptr<SReal> box_min, mptr<SReal> box_max ) const override
         {
 //            ptic(ClassName()+"::BoxMinMax");
             
             cptr<SReal> p = &this->serialized_data[1 + AMB_DIM];
-            mptr<SReal> box_min = box_min_;
-            mptr<SReal> box_max = box_max_;
             
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
                     const SReal x = p[ AMB_DIM * j + k ];
-                    box_min[k] = std::min( box_min[k], x );
-                    box_max[k] = std::max( box_max[k], x );
+                    box_min[k] = Min( box_min[k], x );
+                    box_max[k] = Max( box_max[k], x );
                 }
             }
             

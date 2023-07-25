@@ -85,7 +85,7 @@ namespace GJK
 
 //            wprint(ClassName()+"::FindMaximumSafeStepSize: This might not work correctly for tinit !=1?!");
             
-            SReal T = std::sqrt(
+            SReal T = Sqrt(
                 G.InteriorPoints_SquaredDistance(*P,*Q)
                 + P->SquaredRadius()
                 + Q->SquaredRadius()

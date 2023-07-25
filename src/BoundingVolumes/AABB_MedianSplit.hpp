@@ -54,22 +54,20 @@ namespace GJK
         
     public:
         
-//#include "../Primitives/Primitive_BoilerPlate.hpp"
-        
         __ADD_CLONE_CODE__(CLASS)
         
     public:
         
         virtual Int Split(
             PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,                          // primitive prototype; to be "mapped" over P_serialized, thus not const.
-            SReal * const P_serialized, const Int begin, const Int end,    // which _P_rimitives are in question
-            Int  * const P_ordering,                                        // to keep track of the permutation of the primitives
-            SReal * const C_data, const Int C_ID,                           // where to get   the bounding volume info for _C_urrent bounding volume
-            SReal * const L_serialized, const Int L_ID,                     // where to store the bounding volume info for _L_eft  child (if successful!)
-            SReal * const R_serialized, const Int R_ID,                     // where to store the bounding volume info for _R_ight child (if successful!)
-            SReal *       score,                                             // some scratch buffer for one scalar per primitive
-            Int  *       perm,                                              // some scratch buffer for one Int per primitive (for storing local permutation)
-            Int  *       inv_perm,                                          // some scratch buffer for one Int per primitive (for storing inverse of local permutation)
+            mptr<SReal> P_serialized, const Int begin, const Int end,    // which _P_rimitives are in question
+            mptr<Int>   P_ordering,                                        // to keep track of the permutation of the primitives
+            mptr<SReal> C_data, const Int C_ID,                           // where to get   the bounding volume info for _C_urrent bounding volume
+            mptr<SReal> L_serialized, const Int L_ID,                     // where to store the bounding volume info for _L_eft  child (if successful!)
+            mptr<SReal> R_serialized, const Int R_ID,                     // where to store the bounding volume info for _R_ight child (if successful!)
+            mptr<SReal> score,                                             // some scratch buffer for one scalar per primitive
+            mptr<Int>   perm,                                              // some scratch buffer for one Int per primitive (for storing local permutation)
+            mptr<Int>   inv_perm,                                          // some scratch buffer for one Int per primitive (for storing inverse of local permutation)
             Int thread_count = 1                                           // how many threads to utilize
         ) override
         {
@@ -119,7 +117,9 @@ namespace GJK
             Int split_index = begin + ((end-begin)/2);
 
             Int  * mid = perm + split_index;
-            std::nth_element( perm + begin, mid, perm + end,
+            std::nth_element(
+                    perm + begin, mid,
+                    perm + end,
                     [score](const Int i, const Int j) {return score[i] < score[j];}
             );
             // Now perm contains the desired ordering of score.

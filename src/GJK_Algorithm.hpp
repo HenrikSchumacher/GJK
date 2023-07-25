@@ -42,7 +42,7 @@ namespace GJK
         using PrimitiveBase_T = PrimitiveBase<AMB_DIM,Real,Int>;
         using Op = Tensors::Op;
         
-        static constexpr Real eps = Sqrt(std::numeric_limits<Real>::epsilon());
+        static constexpr Real eps = cSqrt(std::numeric_limits<Real>::epsilon());
         static constexpr Real eps_squared = eps * eps;
         static constexpr Int max_iter = 100;
         
@@ -428,7 +428,7 @@ namespace GJK
                     // Cholesky decomposition
                     for( Int k = 0; k < last; ++k )
                     {
-                        const Real a = g[k][k] = std::sqrt(g[k][k]);
+                        const Real a = g[k][k] = Sqrt(g[k][k]);
                         const Real ainv = one/a;
 
                         for( Int j = k+1; j < last; ++j )
@@ -598,13 +598,13 @@ namespace GJK
                 // Using a tolerance based on the radii of the primitives.
                 
                 GJK_print("Setting TOL_squared to "+ToString(eps)+" times minimum radius of primitives.");
-                TOL_squared = eps_squared * std::min( P.SquaredRadius(), Q.SquaredRadius() );
+                TOL_squared = eps_squared * Min( P.SquaredRadius(), Q.SquaredRadius() );
                 if( TOL_squared <= zero )
                 {
                     // One of the primitives must be a point. Use the radius of the other one as tolerance.
                     
                     GJK_print("Setting TOL_squared to "+ToString(eps)+" times maximum radius of primitives.");
-                    TOL_squared = eps_squared * std::max( P.SquaredRadius(), Q.SquaredRadius() );
+                    TOL_squared = eps_squared * Max( P.SquaredRadius(), Q.SquaredRadius() );
                     
                     if( TOL_squared <= zero )
                     {
@@ -693,9 +693,9 @@ namespace GJK
                 }
                 
                 
-                if( std::abs(dotvv - dotvw) <= eps * dotvv )
+                if( Abs(dotvv - dotvw) <= eps * dotvv )
                 {
-                    GJK_print("Stopping because of abs(dotvv - dotvw) = "+ToString(std::abs(dotvv - dotvw))+" <= "+ToString(eps * dotvv)+" = eps * dotvv.");
+                    GJK_print("Stopping because of abs(dotvv - dotvw) = "+ToString(Abs(dotvv - dotvw))+" <= "+ToString(eps * dotvv)+" = eps * dotvv.");
                     GJK_DUMP(dotvv);
                     GJK_DUMP(dotvw);
                     GJK_DUMP(eps);
@@ -745,7 +745,7 @@ namespace GJK
                 GJK_DUMP(olddotvv);
                 GJK_DUMP(dotvv);
                 
-                if( std::abs(olddotvv - dotvv) <= eps * dotvv )
+                if( Abs(olddotvv - dotvv) <= eps * dotvv )
                 {
                     reason = GJK_Reason::SmallProgress;
                     break;
@@ -769,7 +769,7 @@ namespace GJK
                 GJK_DUMP(theta_squared);
                 GJK_DUMP(TOL_squared);
                 GJK_DUMP(theta_squared * dotvv);
-                GJK_DUMP(std::abs(olddotvv - dotvv));
+                GJK_DUMP(Abs(olddotvv - dotvv));
             }
             
 #ifdef GJK_Report
@@ -780,7 +780,7 @@ namespace GJK
                 GJK_DUMP(dotvv);
             }
 
-            if( std::abs(olddotvv - dotvv) <= eps * dotvv  )
+            if( Abs(olddotvv - dotvv) <= eps * dotvv  )
             {
                 GJK_print("Converged after " + std::to_string(iter) + " iterations.");
             }
@@ -816,11 +816,11 @@ namespace GJK
             // If both P.SquaredRadius() and Q.SquaredRadius() are positive, this routines checks
             // whether there are points x in P and y in Q such that
             //
-            //     theta_squared_ * |x-y|^2 <= eps_squared * std::min( P.SquaredRadius(), Q.SquaredRadius() );
+            //     theta_squared_ * |x-y|^2 <= eps_squared * Min( P.SquaredRadius(), Q.SquaredRadius() );
             //
             // Otherwise it checks whether
             //
-            //     theta_squared_ * |x-y|^2 <= eps_squared * std::min( P.SquaredRadius(), Q.SquaredRadius() );
+            //     theta_squared_ * |x-y|^2 <= eps_squared * Min( P.SquaredRadius(), Q.SquaredRadius() );
             //
             
             Compute(P, Q, true, reuse_direction_, zero, theta_squared_ );
@@ -1011,7 +1011,7 @@ namespace GJK
             
             Compute(P, Q, false, reuse_direction_, min_dist * min_dist );
             
-            const Real dist = std::max( zero, std::sqrt(dotvv) - P_offset - Q_offset );
+            const Real dist = Ramp( Sqrt(dotvv) - P_offset - Q_offset );
             
             return dist * dist;
         }
@@ -1037,7 +1037,7 @@ namespace GJK
             
             Compute(P, Q, false, reuse_direction_, min_dist * min_dist );
             
-            const Real dist0 = std::sqrt(dotvv);
+            const Real dist0 = Sqrt(dotvv);
                   Real dist = dist0 - P_offset - Q_offset;
                   Real x_scale;
                   Real y_scale;
@@ -1171,7 +1171,7 @@ namespace GJK
             const bool reuse_direction_ = false
         )
         {
-            Compute(P, Q, true, reuse_direction_, std::max( P.SquaredRadius(), Q.SquaredRadius() ), theta_squared_ );
+            Compute(P, Q, true, reuse_direction_, Max( P.SquaredRadius(), Q.SquaredRadius() ), theta_squared_ );
             
             return separatedQ;
         }
@@ -1184,7 +1184,7 @@ namespace GJK
             const Real theta_squared_
         )
         {
-            return std::max( P.SquaredRadius(), Q.SquaredRadius() ) < theta_squared_ * AABB_SquaredDistance( P, Q );
+            return Max( P.SquaredRadius(), Q.SquaredRadius() ) < theta_squared_ * AABB_SquaredDistance( P, Q );
         }
         
         std::string ClassName() const

@@ -71,7 +71,7 @@ namespace GJK
  
     public:
         
-#include "../Primitives/Primitive_BoilerPlate.hpp"
+#include "../Primitives/Primitive_Common.hpp"
         
         __ADD_CLONE_CODE_FOR_ABSTRACT_CLASS__(CLASS)
         
@@ -105,8 +105,8 @@ namespace GJK
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
                     const SReal x = static_cast<SReal>(coords[ AMB_DIM * i + k ]);
-                    box_min[k] = std::min( box_min[k], x );
-                    box_max[k] = std::max( box_max[k], x );
+                    box_min[k] = Min( box_min[k], x );
+                    box_max[k] = Max( box_max[k], x );
                 }
             }
             
@@ -207,8 +207,8 @@ namespace GJK
                     Real max_val;
                     
                     P.MinMaxSupportValue( &id_matrix[j][0], min_val, max_val );
-                    box_min[j] = std::min( box_min[j], static_cast<SReal>(min_val) );
-                    box_max[j] = std::max( box_max[j], static_cast<SReal>(max_val) );
+                    box_min[j] = Min( box_min[j], static_cast<SReal>(min_val) );
+                    box_max[j] = Max( box_max[j], static_cast<SReal>(max_val) );
                 }
             }
 
@@ -244,7 +244,7 @@ namespace GJK
                 Real L_k = static_cast<Real>(L[k]);
                 
                 R1   = v[k] * L_k;
-                R2  += v[k] * x_k + std::abs(R1);
+                R2  += v[k] * x_k + Abs(R1);
                 s[k] = x_k + Sign(R1) * L_k;
             }
 
@@ -267,7 +267,7 @@ namespace GJK
                 Real L_k = static_cast<Real>(L[k]);
                 
                 R1   = v[k] * L_k;
-                R2  += v[k] * x_k - std::abs(R1);
+                R2  += v[k] * x_k - Abs(R1);
                 s[k] = x_k - Sign(R1) * L_k;
             }
 
@@ -302,11 +302,11 @@ namespace GJK
             for( Int k = 0; k < AMB_DIM; ++k )
             {
                 Real x = static_cast<Real>(
-                    std::max(
+                    Max(
                              Scalar::Zero<SReal>,
-                        std::max( P_x[k]-P_L[k], Q_x[k]-Q_L[k] )
+                        Max( P_x[k]-P_L[k], Q_x[k]-Q_L[k] )
                         -
-                        std::min( P_x[k]+P_L[k], Q_x[k]+Q_L[k] )
+                        Min( P_x[k]+P_L[k], Q_x[k]+Q_L[k] )
                     )
                 );
                 d2 += x * x;
@@ -331,8 +331,8 @@ namespace GJK
                 
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
-                    const SReal box_min = std::min( x1[k] - L1[k], x2[k] - L2[k] );
-                    const SReal box_max = std::max( x1[k] + L1[k], x2[k] + L2[k] );
+                    const SReal box_min = Min( x1[k] - L1[k], x2[k] - L2[k] );
+                    const SReal box_max = Max( x1[k] + L1[k], x2[k] + L2[k] );
                     
                     x1[k] = Scalar::Half<SReal> * ( box_max + box_min );
                     L1[k] = Scalar::Half<SReal> * ( box_max - box_min );
@@ -350,4 +350,5 @@ namespace GJK
 #undef CLASS
 #undef BASE
     
+
 
