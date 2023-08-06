@@ -2,7 +2,7 @@
 
     #define GJK_HPP
 
-    #include "Tools/Tools.hpp"
+    #include "submodules/Tools/Tools.hpp"
 
     #define GJK_STRINGIFY(a) #a
 
