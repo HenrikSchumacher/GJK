@@ -67,6 +67,7 @@
     //#include "src/BoundingVolumes/OBB_MedianSplit.hpp"        // requires eigensolve
     //#include "src/BoundingVolumes/OBB_PreorderedSplit.hpp"    // requires eigensolve
 
+
     // Actual GJK algorithms
     #include "src/GJK_Algorithm.hpp"
     #include "src/GJK_Batch.hpp"
