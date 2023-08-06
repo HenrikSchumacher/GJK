@@ -1,5 +1,4 @@
-[submodule "Tools"]
+[submodule "submodules/Tools"]
 	path = submodules/Tools
 	url = git@github.com:HenrikSchumacher/Tools.git
 	branch = main
-	update = merge
