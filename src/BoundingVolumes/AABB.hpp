@@ -20,8 +20,8 @@ namespace GJK
         Real id_matrix[AMB_DIM][AMB_DIM];
     
         const int bits = static_cast<int>(64-1) / static_cast<int>(AMB_DIM);
-        const SReal power  = static_cast<SReal>(0.9999) * std::pow( static_cast<SReal>(2), bits );
-        const SReal offset = static_cast<SReal>(0.5) * power;
+        const SReal power  = static_cast<SReal>(0.9999) * std::pow( Scalar::Two<SReal>, bits );
+        const SReal offset = Scalar::Half<SReal> * power;
         
     protected:
         
@@ -65,13 +65,13 @@ namespace GJK
             return SIZE;
         }
         
-    protected:
-
-        mutable SReal self_buffer [1 + AMB_DIM + AMB_DIM];
+//    protected:
+//
+//        mutable SReal self_buffer [1 + AMB_DIM + AMB_DIM];
  
     public:
         
-#include "../Primitives/Primitive_BoilerPlate.hpp"
+#include "../Primitives/Primitive_Common.hpp"
         
         __ADD_CLONE_CODE_FOR_ABSTRACT_CLASS__(CLASS)
         
@@ -79,16 +79,16 @@ namespace GJK
     public:
         
         // array p is suppose to represent a matrix of size N x AMB_DIM
-        void FromPointCloud( const SReal * const coords_in, const Int N ) const override
+        void FromPointCloud( cptr<SReal> coords_in, const Int N ) const override
         {
 //            tic(ClassName()+"::FromPointCloud");
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
-                  SReal * restrict const box_min = serialized_data + 1;
-                  SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
+                  mptr<SReal> box_min = serialized_data + 1;
+                  mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
-            const SReal * restrict const coords = coords_in;
+            cptr<SReal> coords = coords_in;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -105,16 +105,16 @@ namespace GJK
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
                     const SReal x = static_cast<SReal>(coords[ AMB_DIM * i + k ]);
-                    box_min[k] = std::min( box_min[k], x );
-                    box_max[k] = std::max( box_max[k], x );
+                    box_min[k] = Min( box_min[k], x );
+                    box_max[k] = Max( box_max[k], x );
                 }
             }
             
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
                 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -128,8 +128,8 @@ namespace GJK
 
         // array p is supposed to represent a matrix of size N x AMB_DIM
         void FromPrimitives(
-            PolytopeBase<AMB_DIM,Real,Int,SReal> & P,  // primitive prototype
-            SReal * const P_serialized,                // serialized data of primitives
+            mref<PolytopeBase<AMB_DIM,Real,Int,SReal>> P,  // primitive prototype
+            mptr<SReal> P_serialized,                // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
             Int thread_count = 1                       // how many threads to utilize
@@ -137,11 +137,11 @@ namespace GJK
         {
 //            ptic(ClassName()+"::FromPrimitives (PolytopeBase)");
 
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
 
             // Abusing serialized_data temporarily as working space.
-            SReal * restrict const box_min = serialized_data + 1;
-            SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
+            mptr<SReal> box_min = serialized_data + 1;
+            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -157,11 +157,11 @@ namespace GJK
                 P.BoxMinMax( box_min, box_max );
             }
 
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -174,8 +174,8 @@ namespace GJK
         
         // array p is supposed to represent a matrix of size N x AMB_DIM
         virtual void FromPrimitives(
-            PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,      // primitive prototype
-            SReal * const P_serialized,                  // serialized data of primitives
+            mref<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P,      // primitive prototype
+            mptr<SReal> P_serialized,                  // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
             Int thread_count = 1                       // how many threads to utilize
@@ -183,12 +183,12 @@ namespace GJK
         {
 //            ptic(ClassName()+"::FromPrimitives (PrimitiveSerialized)");
 
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
-                  SReal * restrict const box_min = serialized_data + 1;
-                  SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
-            
+            mptr<SReal> box_min = serialized_data + 1;
+            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
+        
             for( Int k = 0; k < AMB_DIM; ++k )
             {
                 box_min[k] = std::numeric_limits<SReal>::max();
@@ -207,16 +207,16 @@ namespace GJK
                     Real max_val;
                     
                     P.MinMaxSupportValue( &id_matrix[j][0], min_val, max_val );
-                    box_min[j] = std::min( box_min[j], static_cast<SReal>(min_val) );
-                    box_max[j] = std::max( box_max[j], static_cast<SReal>(max_val) );
+                    box_min[j] = Min( box_min[j], static_cast<SReal>(min_val) );
+                    box_max[j] = Max( box_max[j], static_cast<SReal>(max_val) );
                 }
             }
 
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
                 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -230,15 +230,13 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<Real> v, mptr<Real> s ) const override
         {
-            const SReal * restrict const x = serialized_data + 1;
-            const SReal * restrict const L = serialized_data + 1 + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            cptr<SReal> x = serialized_data + 1;
+            cptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
-            Real R2 = static_cast<Real>(0);
+            Real R2 = Scalar::Zero<Real>;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -246,8 +244,8 @@ namespace GJK
                 Real L_k = static_cast<Real>(L[k]);
                 
                 R1   = v[k] * L_k;
-                R2  += v[k] * x_k + std::abs(R1);
-                s[k] = x_k + MyMath::sign(R1) * L_k;
+                R2  += v[k] * x_k + Abs(R1);
+                s[k] = x_k + Sign(R1) * L_k;
             }
 
             return R2;
@@ -255,15 +253,13 @@ namespace GJK
 
 
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> v, mptr<Real> s ) const override
         {
-            const SReal * restrict const x = serialized_data + 1;
-            const SReal * restrict const L = serialized_data + 1 + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            cptr<SReal> x = serialized_data + 1;
+            cptr<SReal> L = serialized_data + 1 + AMB_DIM;
             
             Real R1;
-            Real R2 = static_cast<Real>(0);
+            Real R2 = Scalar::Zero<Real>;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -271,15 +267,15 @@ namespace GJK
                 Real L_k = static_cast<Real>(L[k]);
                 
                 R1   = v[k] * L_k;
-                R2  += v[k] * x_k - std::abs(R1);
-                s[k] = x_k - MyMath::sign(R1) * L_k;
+                R2  += v[k] * x_k - Abs(R1);
+                s[k] = x_k - Sign(R1) * L_k;
             }
 
             return R2;
         }
                 
         
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
             // Could be implemented more efficiently, but since this routine is unlikely to be used...
             min_val = MinSupportVector( dir, &this->Real_buffer[0] );
@@ -293,24 +289,24 @@ namespace GJK
         }
         
         
-        inline friend Real AABB_SquaredDistance( const CLASS & P, const CLASS & Q )
+        inline friend Real AABB_SquaredDistance( cref<CLASS> P, cref<CLASS> Q )
         {
-            const SReal * restrict const P_x = P.serialized_data+1;              // center of box P
-            const SReal * restrict const P_L = P.serialized_data+1+AMB_DIM;      // edge half-lengths of box P
+            cptr<SReal> P_x = P.serialized_data+1;              // center of box P
+            cptr<SReal> P_L = P.serialized_data+1+AMB_DIM;      // edge half-lengths of box P
             
-            const SReal * restrict const Q_x = Q.serialized_data+1;              // center of box Q
-            const SReal * restrict const Q_L = Q.serialized_data+1+AMB_DIM;      // edge half-lengths of box Q
+            cptr<SReal> Q_x = Q.serialized_data+1;              // center of box Q
+            cptr<SReal> Q_L = Q.serialized_data+1+AMB_DIM;      // edge half-lengths of box Q
             
-            Real d2 = static_cast<Real>(0);
+            Real d2 = Scalar::Zero<Real>;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
                 Real x = static_cast<Real>(
-                    std::max(
-                        static_cast<SReal>(0),
-                        std::max( P_x[k]-P_L[k], Q_x[k]-Q_L[k] )
+                    Max(
+                             Scalar::Zero<SReal>,
+                        Max( P_x[k]-P_L[k], Q_x[k]-Q_L[k] )
                         -
-                        std::min( P_x[k]+P_L[k], Q_x[k]+Q_L[k] )
+                        Min( P_x[k]+P_L[k], Q_x[k]+Q_L[k] )
                     )
                 );
                 d2 += x * x;
@@ -318,28 +314,28 @@ namespace GJK
             return d2;
         }
         
-        void Merge( SReal * C_Serialized, const Int i = 0 ) const
+        void Merge( mptr<SReal> C_Serialized, const Int i = 0 ) const
         {
-            SReal * p = C_Serialized + SIZE * i;
+            mptr<SReal> p = C_Serialized + SIZE * i;
             
             if( serialized_data != p )
             {
                 
-                SReal * restrict const x1 = serialized_data + 1;
-                SReal * restrict const L1 = serialized_data + 1 + AMB_DIM;
+                mptr<SReal> x1 = serialized_data + 1;
+                mptr<SReal> L1 = serialized_data + 1 + AMB_DIM;
                 
-                SReal * restrict const x2 = p + 1;
-                SReal * restrict const L2 = p + 1 + AMB_DIM;
+                mptr<SReal> x2 = p + 1;
+                mptr<SReal> L2 = p + 1 + AMB_DIM;
                 
-                SReal r2 = static_cast<SReal>(0);
+                SReal r2 = Scalar::Zero<SReal>;
                 
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
-                    const SReal box_min = std::min( x1[k] - L1[k], x2[k] - L2[k] );
-                    const SReal box_max = std::max( x1[k] + L1[k], x2[k] + L2[k] );
+                    const SReal box_min = Min( x1[k] - L1[k], x2[k] - L2[k] );
+                    const SReal box_max = Max( x1[k] + L1[k], x2[k] + L2[k] );
                     
-                    x1[k] = static_cast<SReal>(0.5) * ( box_max + box_min );
-                    L1[k] = static_cast<SReal>(0.5) * ( box_max - box_min );
+                    x1[k] = Scalar::Half<SReal> * ( box_max + box_min );
+                    L1[k] = Scalar::Half<SReal> * ( box_max - box_min );
                     
                     r2 += L1[k] * L1[k];
                 }
@@ -354,4 +350,5 @@ namespace GJK
 #undef CLASS
 #undef BASE
     
+
 

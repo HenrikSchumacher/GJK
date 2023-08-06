@@ -44,39 +44,30 @@ namespace GJK
             return SIZE;
         }
         
-    private:
-
-        mutable SReal self_buffer [SIZE];
+//    private:
+//
+//        mutable SReal self_buffer [SIZE];
         
     public:
         
-#include "Primitive_BoilerPlate.hpp"
+#include "Primitive_Common.hpp"
         
         __ADD_CLONE_CODE__(CLASS)
         
-        void FromTransform( const SReal * const center, const SReal * const transform ) const
+        void FromTransform( cptr<SReal> center, cptr<SReal> transform ) const
         {
-            SReal & r2 = this->serialized_data[0];
+            mref<SReal> r2 = this->serialized_data[0];
             
-                  SReal * restrict const x = this->serialized_data+1;
-                  SReal * restrict const A = this->serialized_data+1+AMB_DIM;
+            mptr<SReal> x  = this->serialized_data+1;
+            mptr<SReal> A  = this->serialized_data+1+AMB_DIM;
             
-            const SReal * restrict const __center     = center;
-            const SReal * restrict const __transform  = transform;
-            
-            for( Int k = 0; k < AMB_DIM; ++k )
-            {
-                x[k] = __center[k];
-            }
-            
-            for( Int k = 0; k < AMB_DIM*AMB_DIM; ++k )
-            {
-                A[k] = __transform[k];
-            }
+            copy_buffer<AMB_DIM          >( center,    x );
+            copy_buffer<AMB_DIM * AMB_DIM>( transform, A );
+
             
             // Computes the sum of the squared half-axis lengths which equals the sum of squared singular values which equals the square of the Frobenius norm.
             
-            r2 = static_cast<SReal>(0);
+            r2 = Scalar::Zero<SReal>;
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -90,7 +81,7 @@ namespace GJK
             
             // Adding a safety term that vanishes when frame has orthogonal column. This is to guarantee that r2 is indeed greater or equal to the actual squared radius.
             // This is superflous if the Parallelepiped is supposed to represent an OBB.
-            SReal dots = static_cast<SReal>(0);
+            SReal dots = Scalar::Zero<SReal>;
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -103,47 +94,42 @@ namespace GJK
                         dot += A[AMB_DIM*k+i]*A[AMB_DIM*k+j];
                     }
                     
-                    dots += std::abs( dot );
+                    dots += Abs( dot );
                 }
 
             }
-            r2 += static_cast<SReal>(2)*dots;
+            r2 += Scalar::Two<SReal>*dots;
         }
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            const SReal * restrict const x = this->serialized_data+1;
-            const SReal * restrict const A = this->serialized_data+1+AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            cptr<SReal> x = this->serialized_data+1;
+            cptr<SReal> A = this->serialized_data+1+AMB_DIM;
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
+                        
+            copy_buffer<AMB_DIM>( x, supp );
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                s[i] = static_cast<Real>(x[i]);
-            }
-            
-            for( Int i = 0; i < AMB_DIM; ++i )
-            {
-                R1 = static_cast<Real>(A[i])*v[0];
+                R1 = static_cast<Real>(A[i]) * dir[0];
                 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    R1 += v[j]*static_cast<Real>(A[AMB_DIM*j+i]);
+                    R1 += dir[j] * static_cast<Real>(A[AMB_DIM*j+i]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(1) : static_cast<Real>(-1);
+                R2 = (R1 >= Scalar::Zero<Real>) ? Scalar::One<Real> : -Scalar::One<Real>;
                 
-                R3 += static_cast<Real>(x[i])*v[i]+R1*R2;
+                R3 += static_cast<Real>(x[i]) * dir[i] + R1 * R2;
                 
                 for( Int j = 0; j < AMB_DIM; ++j )
                 {
-                    s[j] += static_cast<Real>(A[AMB_DIM*j+i])*R2;
+                    supp[j] += static_cast<Real>(A[AMB_DIM*j+i])*R2;
                 }
             }
 
@@ -152,38 +138,36 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
             const SReal * restrict const x = this->serialized_data+1;
             const SReal * restrict const A = this->serialized_data+1+AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                s[i] = static_cast<Real>(x[i]);
+                supp[i] = static_cast<Real>(x[i]);
             }
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                R1 = static_cast<Real>(A[i])*v[0];
+                R1 = static_cast<Real>(A[i]) * dir[0];
                 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    R1 += v[j]*static_cast<Real>(A[AMB_DIM*j+i]);
+                    R1 += dir[j] * static_cast<Real>(A[AMB_DIM*j+i]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(-1) : static_cast<Real>(1);
+                R2 = (R1 >= Scalar::Zero<Real>) ? -Scalar::One<Real> : Scalar::One<Real>;
                 
-                R3 += static_cast<Real>(x[i])*v[i]+R1*R2;
+                R3 += static_cast<Real>(x[i]) * dir[i] + R1 * R2;
                 
                 for( Int j = 0; j < AMB_DIM; ++j )
                 {
-                    s[j] += static_cast<Real>(A[AMB_DIM*j+i])*R2;
+                    supp[j] += static_cast<Real>(A[AMB_DIM*j+i])*R2;
                 }
             }
 
@@ -191,30 +175,29 @@ namespace GJK
         }
         
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
-            const Real * restrict const x = this->serialized_data+1;
-            const Real * restrict const A = this->serialized_data+1+AMB_DIM;
-            const Real * restrict const v = dir;
+            cptr<Real> x = this->serialized_data+1;
+            cptr<Real> A = this->serialized_data+1+AMB_DIM;
 
             Real R1;
             Real R2;
-            min_val = static_cast<Real>(0);
-            max_val = static_cast<Real>(0);
+            min_val = Scalar::Zero<Real>;
+            max_val = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
-                R1 = static_cast<Real>(A[i])*v[0];
+                R1 = static_cast<Real>(A[i]) * dir[0];
                 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    R1 += v[j]*static_cast<Real>(A[AMB_DIM*j+i]);
+                    R1 += dir[j] * static_cast<Real>(A[AMB_DIM*j+i]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(1) : static_cast<Real>(-1);
+                R2 = (R1 >= Scalar::Zero<Real>) ? Scalar::One<Real> : -Scalar::One<Real>;
                 Real x_i = static_cast<Real>(x[i]);
-                min_val += x_i*v[i]-R1*R2;
-                max_val += x_i*v[i]+R1*R2;
+                min_val += x_i * dir[i] - R1 * R2;
+                max_val += x_i * dir[i] + R1 * R2;
             }
         }
         

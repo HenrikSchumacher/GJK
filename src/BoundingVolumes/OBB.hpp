@@ -40,17 +40,17 @@ namespace GJK
             return SIZE;
         }
         
-protected:
-
-        mutable Real self_buffer [SIZE];
+//protected:
+//
+//        mutable Real self_buffer [SIZE];
  
 public:
 
-#include "../Primitives/Primitive_BoilerPlate.hp"
+#include "../Primitives/Primitive_Common.hp"
         
         
         // Array coords_in is supposes to represent a matrix of size n x AMB_DIM
-        void FromPointCloud( const SReal * const coords_in, const Int n ) const override
+        void FromPointCloud( cptr<SReal> coords_in, const Int n ) const override
         {
             if( n == 0 )
             {
@@ -62,14 +62,14 @@ public:
             zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
-            SReal & r2 = serialized_data[0];
-            SReal * restrict const average    = serialized_data + 1;
-            SReal * restrict const covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
+            mref<SReal> r2         = serialized_data[0];
+            mptr<SReal> average    = serialized_data + 1;
+            mptr<SReal> covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
             // Compute average of the points
             for( Int i = 0; i < n; ++i )
             {
-                const SReal * restrict const p = coords_in + AMB_DIM * i;
+                cptr<SReal> p = coords_in + AMB_DIM * i;
 
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
@@ -77,14 +77,14 @@ public:
                 }
             }
 
-            const SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(n);
+            const SReal n_inv = Inv<SReal>(n);
             
             scale_buffer<AMB_DIM>(n_inv,average);
             
             // Compute covariance matrix.
             for( Int i = 0; i < n; ++i )
             {
-                const SReal * restrict const p = coords_in + AMB_DIM * i;
+                cptr<SReal> p = coords_in + AMB_DIM * i;
 
                 for( Int k1 = 0; k1 < AMB_DIM; ++k1 )
                 {
@@ -106,8 +106,8 @@ public:
             }
             
             // Abusing serialized_data temporily as working space.
-                  SReal * restrict const box_min = serialized_data + 1;
-                  SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
+            mptr<SReal> box_min = serialized_data + 1;
+            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
             int info = SymmetricEigenSolve( covariance, box_min );
             
@@ -127,11 +127,11 @@ public:
             // TODO: Can this loop be parallelized?
             for( Int i = 0; i < n; ++i )
             {
-                const SReal * restrict const p = coords_in + AMB_DIM * i;
+                cptr<SReal> p = coords_in + AMB_DIM * i;
 
                 for( Int j = 0; j < AMB_DIM; ++j )
                 {
-                    const SReal * restrict const vec = covariance + AMB_DIM * j;
+                    cptr<SReal> vec = covariance + AMB_DIM * j;
 
                     SReal x = p[0] * vec[0];
 
@@ -140,14 +140,14 @@ public:
                         x += p[k] * vec[k];
                     }
 
-                    box_min[j] = std::min( box_min[j], x );
-                    box_max[j] = std::max( box_max[j], x );
+                    box_min[j] = Min( box_min[j], x );
+                    box_max[j] = Max( box_max[j], x );
                 }
             }
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                SReal diff = 0.5 * (box_max[k] - box_min[k]);
+                SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -157,8 +157,8 @@ public:
                 box_max[k]  = diff;
             }
             
-            SReal * restrict const center    = serialized_data + 1;
-            SReal * restrict const rotationT = serialized_data + 1 + AMB_DIM + AMB_DIM;
+            mptr<SReal> center    = serialized_data + 1;
+            mptr<SReal> rotationT = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
             for( Int j = 0; j < AMB_DIM; ++j )
             {
@@ -174,8 +174,8 @@ public:
         
         // array p is supposed to represent a matrix of size N x AMB_DIM
         virtual void FromPrimitives(
-            PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,      // primitive prototype
-            SReal * const P_serialized,                  // serialized data of primitives
+            mref<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P,      // primitive prototype
+            mptr<SReal> P_serialized,                  // serialized data of primitives
             const Int begin,                           // which _P_rimitives are in question
             const Int end,                             // which _P_rimitives are in question
             Int thread_count = 1                       // how many threads to utilize
@@ -194,16 +194,16 @@ public:
             zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
-            SReal & r2 = serialized_data[0];
-            SReal * restrict const average    = serialized_data + 1;
-            SReal * restrict const covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
+            mref<SReal> r2         = serialized_data[0];
+            mptr<SReal> average    = serialized_data + 1;
+            mptr<SReal> covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
             const Int P_Size = P.Size();
             
             // Compute average of the InterPoints of all primitives.
             for( Int i = begin; i < end; ++i )
             {
-                const SReal * restrict const p = P_serialized + 1 + P_Size * i;
+                cptr<SReal> p = P_serialized + 1 + P_Size * i;
 
                 for( Int k = 0; k < AMB_DIM; ++k )
                 {
@@ -211,14 +211,14 @@ public:
                 }
             }
 
-            const SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(end-begin);
+            const SReal n_inv = Inv<SReal>(end-begin);
             
             scale_buffer<AMB_DIM>(n_inv,average);
             
             // Compute covariance matrix.
             for( Int i = begin; i < end; ++i )
             {
-                const SReal * restrict const p = P_serialized + 1 + P_Size * i;
+                cptr<SReal> p = P_serialized + 1 + P_Size * i;
 
                 for( Int k1 = 0; k1 < AMB_DIM; ++k1 )
                 {
@@ -240,8 +240,8 @@ public:
             }
             
             // Abusing serialized_data temporily as working space.
-                  SReal * restrict const box_min = serialized_data + 1;
-                  SReal * restrict const box_max = serialized_data + 1 + AMB_DIM;
+            mptr<SReal> box_min = serialized_data + 1;
+            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
         
             (void)SymmetricEigenSolve( covariance, box_min );
             
@@ -263,14 +263,14 @@ public:
                     SReal min_val;
                     SReal max_val;
                     P.MinMaxSupportValue( covariance + AMB_DIM * j, min_val, max_val );
-                    box_min[j] = std::min( box_min[j], min_val );
-                    box_max[j] = std::max( box_max[j], max_val );
+                    box_min[j] = Min( box_min[j], min_val );
+                    box_max[j] = Max( box_max[j], max_val );
                 }
             }
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                SReal diff = static_cast<SReal>(0.5) * (box_max[k] - box_min[k]);
+                SReal diff = sScalar::Half<SReal> * (box_max[k] - box_min[k]);
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center (within the transformed coordinates)
@@ -282,8 +282,8 @@ public:
             
             // Rotate this->SReal_buffer so that it falls onto the true center of the bounding box.
             
-            SReal * restrict const center    = serialized_data + 1;
-            SReal * restrict const rotationT = serialized_data + 1 + AMB_DIM + AMB_DIM;
+            mptr<SReal> center    = serialized_data + 1;
+            mptr<SReal> rotationT = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
             for( Int j = 0; j < AMB_DIM; ++j )
             {
@@ -298,15 +298,15 @@ public:
         }
         
         virtual Int Split(
-            PrimitiveSerialized<AMB_DIM,Real,Int,SReal> & P,                          // primitive prototype; to be "mapped" over P_serialized, thus not const.
-            SReal * const P_serialized, const Int begin, const Int end,    // which _P_rimitives are in question
-            Int  * const P_ordering,                                        // to keep track of the permutation of the primitives
-            SReal * const C_serialized, const Int C_ID,                     // where to get   the bounding volume info for _C_urrent bounding volume
-            SReal * const L_serialized, const Int L_ID,                     // where to store the bounding volume info for _L_eft  child (if successful!)
-            SReal * const R_serialized, const Int R_ID,                     // where to store the bounding volume info for _R_ight child (if successful!)
-            SReal *       score,                                             // some scratch buffer for one scalar per primitive
-            Int  *       perm,                                              // some scratch buffer for one Int per primitive (for storing local permutation)
-            Int  *       inv_perm,                                          // some scratch buffer for one Int per primitive (for storing inverse of local permutation)
+            mref<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> P,                          // primitive prototype; to be "mapped" over P_serialized, thus not const.
+            mptr<SReal> P_serialized, const Int begin, const Int end,    // which _P_rimitives are in question
+            mptr<Int>   P_ordering,                                        // to keep track of the permutation of the primitives
+            mptr<SReal> C_serialized, const Int C_ID,                     // where to get   the bounding volume info for _C_urrent bounding volume
+            mptr<SReal> L_serialized, const Int L_ID,                     // where to store the bounding volume info for _L_eft  child (if successful!)
+            mptr<SReal> R_serialized, const Int R_ID,                     // where to store the bounding volume info for _R_ight child (if successful!)
+            mptr<SReal> score,                                             // some scratch buffer for one scalar per primitive
+            mptr<Int>   perm,                                              // some scratch buffer for one Int per primitive (for storing local permutation)
+            mptr<Int>   inv_perm,                                          // some scratch buffer for one Int per primitive (for storing inverse of local permutation)
             Int thread_count = 1                                           // how many threads to utilize
         ) override
         {
@@ -318,9 +318,9 @@ public:
             
             SetPointer( C_serialized, C_ID );
             
-            const SReal * restrict const center    = serialized_data + 1;
-            const SReal * restrict const L         = serialized_data + 1 + AMB_DIM;
-            const SReal * restrict const rotationT = serialized_data + 1 + AMB_DIM + AMB_DIM;
+            cptr<SReal> center    = serialized_data + 1;
+            cptr<SReal> L         = serialized_data + 1 + AMB_DIM;
+            cptr<SReal> rotationT = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
             // Find the longest axis `split_dir` of primitives's bounding box.
             Int split_dir = 0;
@@ -336,7 +336,7 @@ public:
                 }
             }
             
-            if( L_max <= static_cast<SReal>(0) )
+            if( L_max <= Scalar::Zero<SReal> )
             {
                 eprint(ClassName()+"::Split: longest axis has length <=0.");
                 return -1;
@@ -348,7 +348,7 @@ public:
             Int split_index = begin;
             for( Int i = begin; i < end; ++i )
             {
-                const SReal * restrict const p = P_serialized + 1 + P_Size * i;
+                cptr<SReal> p = P_serialized + 1 + P_Size * i;
 
                 SReal x = rotationT[ AMB_DIM * split_dir ] * (p[0] - center[0]);
 
@@ -357,7 +357,7 @@ public:
                     x += rotationT[ AMB_DIM * split_dir + k ] * (p[k] - center[k]);
                 }
 
-                if( x < static_cast<SReal>(0) )
+                if( x < Scalar::Zero<SReal> )
                 {
                     std::swap( P_ordering[split_index], P_ordering[i] );
 
@@ -390,17 +390,15 @@ public:
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<SReal> dir, mptr<SReal> supp ) const override
         {
-            const SReal * restrict const x = serialized_data + 1;
-            const SReal * restrict const L = serialized_data + 1 + AMB_DIM;
-            const SReal * restrict const A = serialized_data + 1 + AMB_DIM + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            cptr<SReal> x = serialized_data + 1;
+            cptr<SReal> L = serialized_data + 1 + AMB_DIM;
+            cptr<SReal> A = serialized_data + 1 + AMB_DIM + AMB_DIM;
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -410,20 +408,20 @@ public:
             for( Int i = 0; i < AMB_DIM; ++i )
             {
                 // Multiply v with i-th row.
-                R1 = static_cast<Real>(A[ AMB_DIM * i]) * v[0];
+                R1 = static_cast<Real>(A[ AMB_DIM * i]) * dir[0];
 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    R1 += v[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
+                    R1 += dir[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(L[i]) : -static_cast<Real>(L[i]);
+                R2 = (R1 >= Scalar::Zero<Real>) ? static_cast<Real>(L[i]) : -static_cast<Real>(L[i]);
                 
-                R3 += static_cast<Real>(x[i]) * v[i] + R1 * R2;
+                R3 += static_cast<Real>(x[i]) * dir[i] + R1 * R2;
                 
                 for( Int j = 0; j < AMB_DIM; ++j )
                 {
-                    s[j] +=  static_cast<Real>(A[ AMB_DIM * i + j ]) * R2;
+                    supp[j] +=  static_cast<Real>(A[ AMB_DIM * i + j ]) * R2;
                 }
             }
 
@@ -432,22 +430,17 @@ public:
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
-            const SReal * restrict const x = serialized_data + 1;
-            const SReal * restrict const L = serialized_data + 1 + AMB_DIM;
-            const SReal * restrict const A = serialized_data + 1 + AMB_DIM + AMB_DIM;
-            const  Real * restrict const v = dir;
-                   Real * restrict const s = supp;
+            cptr<SReal> x = serialized_data + 1;
+            cptr<SReal> L = serialized_data + 1 + AMB_DIM;
+            cptr<SReal> A = serialized_data + 1 + AMB_DIM + AMB_DIM;
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
-            for( Int i = 0; i < AMB_DIM; ++i )
-            {
-                s[i] = x[i];
-            }
+            copy_buffer<AMB_DIM>( x, supp );
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -456,23 +449,23 @@ public:
 
                 for( Int j = 1; j < AMB_DIM; ++j )
                 {
-                    R1 += v[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
+                    R1 += dir[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? -static_cast<Real>(L[i]) : static_cast<Real>(L[i]);
+                R2 = (R1 >= Scalar::Zero<Real>) ? -static_cast<Real>(L[i]) : static_cast<Real>(L[i]);
                 
-                R3 += static_cast<Real>(x[i]) * v[i] + R1 * R2;
+                R3 += static_cast<Real>(x[i]) * dir[i] + R1 * R2;
 
                 for( Int j = 0; j < AMB_DIM; ++j )
                 {
-                    s[j] += static_cast<Real>(A[ AMB_DIM * i + j ]) * R2;
+                    supp[j] += static_cast<Real>(A[ AMB_DIM * i + j ]) * R2;
                 }
             }
 
             return R3;
         }
                 
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const override
         {
             min_val = MinSupportVector( dir, &this->Real_buffer[0] );
             max_val = MaxSupportVector( dir, &this->Real_buffer[AMB_DIM] );

@@ -6,7 +6,7 @@ namespace GJK
 {
     
     template <typename Real, typename Int, typename SReal>
-    class alignas( OBJECT_ALIGNMENT ) CLASS
+    class alignas(ObjectAlignment) CLASS
     {
         ASSERT_FLOAT(Real);
         ASSERT_INT  (Int     );
@@ -23,8 +23,8 @@ namespace GJK
     public:
         
         virtual SReal FindMaximumSafeStepSize(
-            const SReal * p, const SReal * u,
-            const SReal * q, const SReal * v,
+            cptr<SReal> p, cptr<SReal> u,
+            cptr<SReal> q, cptr<SReal> v,
             const SReal tinit
         ) const = 0;
         

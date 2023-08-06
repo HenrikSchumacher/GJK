@@ -41,13 +41,13 @@ namespace GJK
             return SIZE;
         }
         
-protected:
-        
-        using BASE::self_buffer;
+//protected:
+//        
+//        using BASE::self_buffer;
  
 public:
 
-#include "../Primitives/Primitive_BoilerPlate.hpp"
+#include "../Primitives/Primitive_Common.hpp"
         
         
         // Array coords_in is supposes to represent a matrix of size n x AMB_DIM
@@ -63,7 +63,7 @@ public:
             zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             SReal * restrict const average    = serialized_data + 1;
             SReal * restrict const covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
@@ -78,7 +78,7 @@ public:
                 }
             }
 
-            const Real n_inv = static_cast<Real>(1)/static_cast<Real>(n);
+            const Real n_inv = Inv<Real>(n);
             
             scale_buffer<AMB_DIM>(n_inv,average);
             
@@ -136,14 +136,14 @@ public:
                         x += p[k] * vec[k];
                     }
 
-                    box_min[j] = std::min( box_min[j], x );
-                    box_max[j] = std::max( box_max[j], x );
+                    box_min[j] = Min( box_min[j], x );
+                    box_max[j] = Max( box_max[j], x );
                 }
             }
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                Real diff = static_cast<Real>( static_cast<SReal>(0.5) * (box_max[k] - box_min[k]) );
+                Real diff = static_cast<Real>( Scalar::Half<SReal> * (box_max[k] - box_min[k]) );
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center
@@ -188,7 +188,7 @@ public:
             zerofy_buffer<SIZE>(serialized_data);
             
             // Abusing serialized_data temporily as working space.
-            SReal & r2 = serialized_data[0];
+            mref<SReal> r2 = serialized_data[0];
             SReal * restrict const average    = serialized_data + 1;
             SReal * restrict const covariance = serialized_data + 1 + AMB_DIM + AMB_DIM;
             
@@ -205,7 +205,7 @@ public:
                 }
             }
 
-            const SReal n_inv = static_cast<SReal>(1)/static_cast<SReal>(end-begin);
+            const SReal n_inv = Inv<Real>(end-begin);
 
             scale_buffer<AMB_DIM>(n_inv,average);
             
@@ -257,14 +257,14 @@ public:
                     SReal min_val;
                     SReal max_val;
                     P.MinMaxSupportValue( covariance + AMB_DIM * j, min_val, max_val );
-                    box_min[j] = std::min( box_min[j], min_val );
-                    box_max[j] = std::max( box_max[j], max_val );
+                    box_min[j] = Min( box_min[j], min_val );
+                    box_max[j] = Max( box_max[j], max_val );
                 }
             }
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                Real diff = static_cast<Real>( static_cast<SReal>(0.5) * (box_max[k] - box_min[k]) );
+                Real diff = static_cast<Real>( Scalar::Half<SReal> * (box_max[k] - box_min[k]) );
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center (within the transformed coordinates)
@@ -340,7 +340,7 @@ public:
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
             
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -357,7 +357,7 @@ public:
                     R1 += v[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? static_cast<Real>(L[i]) : -static_cast<Real>(L[i]);
+                R2 = (R1 >= Scalar::Zero<Real>) ? static_cast<Real>(L[i]) : -static_cast<Real>(L[i]);
                 
                 R3 += static_cast<Real>(x[i]) * v[i] + R1 * R2;
                 
@@ -382,7 +382,7 @@ public:
 
             Real R1;
             Real R2;
-            Real R3 = static_cast<Real>(0);
+            Real R3 = Scalar::Zero<Real>;
 
             for( Int i = 0; i < AMB_DIM; ++i )
             {
@@ -399,7 +399,7 @@ public:
                     R1 += v[j] * static_cast<Real>(A[ AMB_DIM * i + j ]);
                 }
                 
-                R2 = (R1 >= static_cast<Real>(0)) ? -static_cast<Real>(L[i]) : static_cast<Real>(L[i]);
+                R2 = (R1 >= Scalar::Zero<Real>) ? -static_cast<Real>(L[i]) : static_cast<Real>(L[i]);
                 
                 R3 += static_cast<Real>(x[i]) * v[i] + R1 * R2;
                 

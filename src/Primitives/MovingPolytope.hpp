@@ -8,7 +8,7 @@ namespace GJK
     
     template<int POINT_COUNT, int AMB_DIM, typename Real, typename Int, typename SReal,
         typename ExtReal, typename ExtInt>
-    class alignas( OBJECT_ALIGNMENT ) CLASS : public BASE
+    class alignas(ObjectAlignment) CLASS : public BASE
     {
 
         ASSERT_FLOAT(ExtReal);
@@ -75,7 +75,7 @@ namespace GJK
             return SIZE;
         }
         
-        virtual void FromCoordinates( const ExtReal * const p_, const Int i = 0 ) override
+        virtual void FromCoordinates( cptr<ExtReal> p_, const Int i = 0 ) override
         {
             // Supposed to do the same as Polytope<POINT_COUNT,AMB_DIM,...>::FromCoordinates + ReadCoordinatesSerialized. Meant primarily for debugging purposes; in practice, we will typically used LoadCoordinatesSerialized from already serialized data.
             GJK_tic(ClassName()+"::FromCoordinates");
@@ -95,7 +95,7 @@ namespace GJK
                 }
             }
 
-            constexpr SReal factor = (static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT));
+            constexpr SReal factor = Inv<SReal>(POINT_COUNT);
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -103,7 +103,7 @@ namespace GJK
             }
 
             // Compute radius.
-            SReal r_2 = static_cast<SReal>(0);
+            SReal r_2 = Scalar::Zero<SReal>;
             
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
@@ -115,20 +115,20 @@ namespace GJK
                     diff = positions[j][k] - av_position[k];
                     square += diff * diff;
                 }
-                r_2 = std::max( r_2, square );
+                r_2 = Max( r_2, square );
             }
             
-            r = std::sqrt(r_2);
+            r = Sqrt(r_2);
             
             GJK_toc(ClassName()+"::FromCoordinates");
         }
         
-        virtual void WriteCoordinatesSerialized( SReal * const p_serialized, const Int i = 0 ) const override
+        virtual void WriteCoordinatesSerialized( mptr<SReal> p_serialized, const Int i = 0 ) const override
         {
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::ReadCoordinatesSerialized");
             
-            SReal * restrict const p__ = &p_serialized[COORD_SIZE * i];
+            mptr<SReal> p__ = &p_serialized[COORD_SIZE * i];
             
             p__[0] = r * r;
             
@@ -138,14 +138,14 @@ namespace GJK
             GJK_toc(ClassName()+"::ReadCoordinatesSerialized");
         }
         
-        virtual void ReadCoordinatesSerialized( const SReal * const p_serialized, const Int i = 0 ) override
+        virtual void ReadCoordinatesSerialized( cptr<SReal> p_serialized, const Int i = 0 ) override
         {
             // Write to serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteCoordinatesSerialized");
             
-            const SReal * restrict const p__ = &p_serialized[COORD_SIZE * i];
+            cptr<SReal> p__ = &p_serialized[COORD_SIZE * i];
             
-            r = std::sqrt(p__[0]);
+            r = Sqrt(p__[0]);
             
             copy_buffer<AMB_DIM              >( &p__[1],         &av_position[0] );
             copy_buffer<AMB_DIM * POINT_COUNT>( &p__[1+AMB_DIM], &positions[0][0] );
@@ -155,7 +155,7 @@ namespace GJK
         
 
         
-        virtual void FromVelocities( const ExtReal * const v_, const Int i = 0 ) override
+        virtual void FromVelocities( cptr<ExtReal> v_, const Int i = 0 ) override
         {
             GJK_tic(ClassName()+"::FromVelocities");
 
@@ -176,20 +176,20 @@ namespace GJK
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                av_velocity[k] *= (static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT));
+                av_velocity[k] *= Inv<SReal>(POINT_COUNT);
             }
 
-            SReal v_2 = static_cast<SReal>(0);
+            SReal v_2 = Scalar::Zero<SReal>;
 
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
                 v_2 += av_velocity[k] * av_velocity[k];
             }
-            v = std::sqrt(v_2);
+            v = Sqrt(v_2);
 
             // Compute radius.
-            SReal w_2 = static_cast<SReal>(0);
+            SReal w_2 = Scalar::Zero<SReal>;
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
                 SReal diff = velocities[j][0] - av_velocity[0];
@@ -200,18 +200,18 @@ namespace GJK
                     diff = velocities[j][k] - av_velocity[k];
                     square += diff * diff;
                 }
-                w_2 = std::max( w_2, square );
+                w_2 = Max( w_2, square );
             }
-            w = std::sqrt(w_2);
+            w = Sqrt(w_2);
 
             GJK_toc(ClassName()+"::FromVelocities");
         }
         
-        virtual void FromVelocitiesIndexList( const ExtReal * const v_, const ExtInt * const tuples, const Int i = 0 ) override
+        virtual void FromVelocitiesIndexList( cptr<ExtReal> v_, cptr<ExtInt> tuples, const Int i = 0 ) override
         {
             GJK_tic(ClassName()+"::FromVelocitiesIndexList");
             
-            const ExtInt * restrict const s = tuples + POINT_COUNT * i;
+            cptr<ExtInt> s = tuples + POINT_COUNT * i;
             
             {
                 for( Int k = 0; k < AMB_DIM; ++k )
@@ -232,20 +232,20 @@ namespace GJK
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                av_velocity[k] *= (static_cast<SReal>(1)/static_cast<SReal>(POINT_COUNT));
+                av_velocity[k] *= Inv<SReal>(POINT_COUNT);
             }
             
-            SReal v_2 = static_cast<SReal>(0);
+            SReal v_2 = Scalar::Zero<SReal>;
             
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
                 v_2 += av_velocity[k] * av_velocity[k];
             }
-            v = std::sqrt(v_2);
+            v = Sqrt(v_2);
             
             // Compute radius.
-            SReal w_2 = static_cast<SReal>(0);
+            SReal w_2 = Scalar::Zero<SReal>;
             for( Int j = 0; j < POINT_COUNT; ++j )
             {
                 SReal diff = velocities[j][0] - av_velocity[0];
@@ -256,20 +256,20 @@ namespace GJK
                     diff = velocities[j][k] - av_velocity[k];
                     square += diff * diff;
                 }
-                w_2 = std::max( w_2, square );
+                w_2 = Max( w_2, square );
             }
-            w = std::sqrt(w_2);
+            w = Sqrt(w_2);
             
             GJK_toc(ClassName()+"::FromVelocitiesIndexList");
         }
         
         
-        virtual void WriteVelocitiesSerialized( SReal * const v_serialized, const Int i = 0 ) const override
+        virtual void WriteVelocitiesSerialized( mptr<SReal> v_serialized, const Int i = 0 ) const override
         {
             // Loads from serialized data as stored by Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteVelocitiesSerialized");
             
-            SReal * restrict const v__ = &v_serialized[VELOC_SIZE * i];
+            mptr<SReal> v__ = &v_serialized[VELOC_SIZE * i];
             
             v__[0] = w;
             
@@ -281,12 +281,12 @@ namespace GJK
             GJK_toc(ClassName()+"::WriteVelocitiesSerialized");
         }
         
-        virtual void ReadVelocitiesSerialized( const SReal * const v_serialized, const Int i = 0 ) override
+        virtual void ReadVelocitiesSerialized( cptr<SReal> v_serialized, const Int i = 0 ) override
         {
             // Reads from serialized data as stored by WriteVelocitiesSerialized
             GJK_tic(ClassName()+"::ReadVelocitiesSerialized");
             
-            const SReal * restrict const v__ = &v_serialized[VELOC_SIZE * i];
+            cptr<SReal> v__ = &v_serialized[VELOC_SIZE * i];
             
             w = v__[0];
             
@@ -300,12 +300,12 @@ namespace GJK
 
         
         
-        virtual void WriteDeformedSerialized( SReal * const p_serialized, const SReal t, const Int i = 0 ) const override
+        virtual void WriteDeformedSerialized( mptr<SReal> p_serialized, const SReal t, const Int i = 0 ) const override
         {
             // Reads from serialized data in the format of Polytope<POINT_COUNT,AMB_DIM,...>
             GJK_tic(ClassName()+"::WriteDeformedSerialized");
             
-            SReal * restrict const p = p_serialized + COORD_SIZE * i;
+            mptr<SReal> p = p_serialized + COORD_SIZE * i;
             
 //            p[0] = r * r;
             
@@ -329,7 +329,7 @@ namespace GJK
                     r2_local += diff * diff;
                 }
                 
-                r2 = std::max(r2,r2_local);
+                r2 = Max(r2,r2_local);
             }
             
             p[0] = r2;
@@ -340,7 +340,7 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
             GJK_tic(ClassName()+"::MaxSupportVector");
             
@@ -445,7 +445,7 @@ namespace GJK
         
         
         //Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const override
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const override
         {
             GJK_tic(ClassName()+"::MinSupportVector");
             
@@ -546,7 +546,9 @@ namespace GJK
         
         
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const override
+        virtual void MinMaxSupportValue(
+            cptr<Real> dir, mref<Real> min_val, mref<Real> max_val
+        ) const override
         {
             GJK_tic(ClassName()+"::MinMaxSupportValue");
             
@@ -598,25 +600,12 @@ namespace GJK
                     value_at_b += x + b * y;
                 }
                 
-                if( value_at_a < min_at_a )
-                {
-                    min_at_a = value_at_a;
-                }
                 
-                if( value_at_b < min_at_b )
-                {
-                    min_at_b = value_at_b;
-                }
-                
-                if( value_at_a > max_at_a )
-                {
-                    max_at_a = value_at_a;
-                }
-                
-                if( value_at_b > max_at_b )
-                {
-                    max_at_b = value_at_b;
-                }
+                min_at_a = Min( value_at_a, min_at_a );
+                max_at_a = Max( value_at_a, max_at_a );
+                min_at_b = Min( value_at_b, min_at_b );
+                max_at_b = Max( value_at_b, max_at_b );
+
             }
             
             const SReal aT = a * T;
@@ -627,18 +616,18 @@ namespace GJK
             min_at_b += bT * vec[AMB_DIM];
             max_at_b += bT * vec[AMB_DIM];
             
-            min_val = static_cast<Real>(std::min(min_at_a, min_at_b));
-            max_val = static_cast<Real>(std::max(max_at_a, max_at_b));
+            min_val = static_cast<Real>(Min(min_at_a, min_at_b));
+            max_val = static_cast<Real>(Max(max_at_a, max_at_b));
             
             GJK_toc(ClassName()+"::MinMaxSupportValue");
         }
         
         // Returns some point within the primitive and writes it to p.
-        virtual void InteriorPoint( Real * const p ) const override
+        virtual void InteriorPoint( mptr<Real> p ) const override
         {
             GJK_tic(ClassName()+"::InteriorPoint");
             
-            const SReal t = static_cast<SReal>(0.5) * (a + b);
+            const SReal t = Scalar::Half<SReal> * (a + b);
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
@@ -655,7 +644,7 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::InteriorPoint");
             
-            const SReal t = static_cast<SReal>(0.5) * (a + b);
+            const SReal t = Scalar::Half<SReal> * (a + b);
             
             if( k == AMB_DIM )
             {
@@ -674,7 +663,7 @@ namespace GJK
         {
             GJK_tic(ClassName()+"::SquaredRadius");
             
-            const SReal s = static_cast<SReal>(0.5) * std::abs(b-a);
+            const SReal s = Scalar::Half<SReal> * Abs(b-a);
             const SReal x = s * v + r + w * b;
             const SReal y = s * T;
             
@@ -721,89 +710,89 @@ namespace GJK
     
     template <int AMB_DIM, typename Real, typename Int, typename SReal,
         typename ExtReal = SReal, typename ExtInt = Int>
-    std::unique_ptr<BASE> MakeMovingPolytope( const Int P_size )
+    [[nodiscard]] std::shared_ptr<BASE> MakeMovingPolytope( const Int P_size )
     {
-        switch(  P_size  )
+        switch( P_size )
         {
             case 1:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<1,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<1,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 2:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<2,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<2,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 3:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<3,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<3,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 4:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<4,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<4,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 5:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<5,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<5,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 6:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<6,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<6,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 7:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<7,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<7,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 8:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<8,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<8,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 9:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<9,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<9,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 10:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<10,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<10,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 11:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<11,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<11,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 12:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<12,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<12,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 13:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<13,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<13,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 14:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<14,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<14,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 15:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<15,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<15,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 16:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<16,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<16,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 17:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<17,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<17,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 18:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<18,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<18,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 19:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<19,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<19,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             case 20:
             {
-                return std::unique_ptr<BASE>(MovingPolytope<20,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
+                return std::shared_ptr<BASE>(MovingPolytope<20,AMB_DIM,Real,Int,SReal,ExtReal,ExtInt>());
             }
             default:
             {

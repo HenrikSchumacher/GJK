@@ -13,10 +13,10 @@ namespace GJK
         
     protected:
     
-        mutable SReal a = static_cast<SReal>(0);
-        mutable SReal b = static_cast<SReal>(1);
+        mutable SReal a = Scalar::Zero<SReal>;
+        mutable SReal b = Scalar::One<SReal>;
         
-        mutable SReal T = static_cast<SReal>(1);
+        mutable SReal T = Scalar::One<SReal>;
         
     public:
         

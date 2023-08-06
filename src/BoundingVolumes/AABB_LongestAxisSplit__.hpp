@@ -44,7 +44,13 @@ namespace GJK
         
         using BASE::serialized_data;
         
+        using BASE::r2;
+        using BASE::lower;
+        using BASE::upper;
+        
     public:
+        
+        using Vector_T =  typename BASE::Vector_T;
         
         using BASE::Size;
         using BASE::SetPointer;
@@ -73,33 +79,16 @@ namespace GJK
             
             const Int P_Size = P.Size();
             
-            SetPointer( C_data, C_ID );
+            this->Load( C_data, C_ID );
+            
+            Vector_T x ( upper );
+            x -= lower;
             
             // Find the longest axis `split_dir` of primitives's bounding box.
-            Int split_dir = 0;
-            
-            SReal L_max = serialized_data[1 + AMB_DIM + split_dir];
-            
-            for( Int k = 1; k < AMB_DIM; ++k )
-            {
-                SReal L_k = serialized_data[1 + AMB_DIM + k];
-                if( L_k > L_max )
-                {
-                    L_max = L_k;
-                    split_dir = k;
-                }
-            }
-            
-//            if( L_max <= Scalar::Zero<SReal> )
-//            {
-//                eprint(ClassName()+"Split: longest axis has length <=0.");
-//                DUMP(this->DataString());
-//                //                ptoc(ClassName()+"::Split (PrimitiveSerialized)");
-//                return -1;
-//            }
+            const Int split_dir = iamax_buffer<AMB_DIM>( x.data() );
             
             // The interesting coordinate of center position.
-            const SReal mid = serialized_data[1 + split_dir];
+            const SReal mid = Scalar::Half<SReal> * ( lower[split_dir] + upper[split_dir]);
             
             Int split_index = begin;
             
@@ -112,9 +101,9 @@ namespace GJK
                 //                SReal x = P.InteriorPoint( split_dir );
                 
                 // WARNING: For performance reasons, we do NOT use P.InteriorPoint for reading out the coordinate x!
-                const SReal x = p[ P_Size * i ];
+                const SReal t = p[ P_Size * i ];
                 
-                if( x < mid )
+                if( t < mid )
                 {
                     std::swap( P_ordering[split_index], P_ordering[i] );
                     

@@ -9,7 +9,7 @@ namespace GJK
     // Int   -  integer type for return values and loops.
     
     template<int AMB_DIM, typename Real_, typename Int_>
-    class alignas( OBJECT_ALIGNMENT ) CLASS // Use this broad alignment to prevent false sharing.
+    class alignas(ObjectAlignment) CLASS // Use this broad alignment to prevent false sharing.
     {
         ASSERT_FLOAT(Real_);
         ASSERT_INT  (Int_ );
@@ -33,16 +33,16 @@ namespace GJK
         }
         
         // Computes support vector supp of dir.
-        virtual Real MaxSupportVector( const Real * const dir, Real * const supp ) const = 0;
+        virtual Real MaxSupportVector( cptr<Real> dir, mptr<Real> supp ) const = 0;
         
         // Computes support vector supp of dir.
-        virtual Real MinSupportVector( const Real * const dir, Real * const supp ) const = 0;
+        virtual Real MinSupportVector( cptr<Real> dir, mptr<Real> supp ) const = 0;
         
         // Computes only the values of min/max support function. Usefull to compute bounding boxes.
-        virtual void MinMaxSupportValue( const Real * const dir, Real & min_val, Real & max_val ) const = 0;
+        virtual void MinMaxSupportValue( cptr<Real> dir, mref<Real> min_val, mref<Real> max_val ) const = 0;
         
         // Returns some point within the primitive and writes it to p.
-        virtual void InteriorPoint( Real * const p ) const = 0;
+        virtual void InteriorPoint( mptr<Real> p ) const = 0;
     
         virtual Real InteriorPoint( const Int k ) const = 0;
         

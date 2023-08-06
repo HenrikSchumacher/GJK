@@ -10,8 +10,6 @@
     {
         using GJK_Real = double;
         
-        static int GJK_digits = 16;
-        
         using namespace Tools;
         
     } // namespace Collision
