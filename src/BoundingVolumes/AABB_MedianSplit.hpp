@@ -108,6 +108,7 @@ namespace GJK
 
             cptr<SReal> p = P_serialized + 1 + split_dir;
 
+            // TODO: Parallelize
             for( Int i = begin; i < end; ++i )
             {
                 score[i] = p[ P_Size * i ];
@@ -117,6 +118,7 @@ namespace GJK
             Int split_index = begin + ((end-begin)/2);
 
             Int  * mid = perm + split_index;
+            // TODO: Parallelize
             std::nth_element(
                     perm + begin, mid,
                     perm + end,
@@ -125,6 +127,7 @@ namespace GJK
             // Now perm contains the desired ordering of score.
 
             // Invert permutation.
+            // TODO: Parallelize
             for( Int i = begin; i < end; ++i )
             {
                 inv_perm[perm[i]] = i;
@@ -132,6 +135,7 @@ namespace GJK
 
             // https://www.geeksforgeeks.org/permute-the-elements-of-an-array-following-given-order/
             // Reorder primitive according to perm, i.e., write primitive perm[i] to position i.
+            // TODO: Parallelize
             for( Int i = begin; i < end; ++i )
             {
                 Int next = i;

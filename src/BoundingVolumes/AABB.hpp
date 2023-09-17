@@ -136,39 +136,88 @@ namespace GJK
         ) const
         {
 //            ptic(ClassName()+"::FromPrimitives (PolytopeBase)");
-
-            mref<SReal> r2 = serialized_data[0];
-
-            // Abusing serialized_data temporarily as working space.
-            mptr<SReal> box_min = serialized_data + 1;
-            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
+            
+            std::array<SReal,AMB_DIM> lower;
+            std::array<SReal,AMB_DIM> upper;
             
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                box_min[k] = std::numeric_limits<SReal>::max();
-                box_max[k] = std::numeric_limits<SReal>::lowest();
+                lower[k] = Scalar::Max<SReal>;
+                upper[k] = Scalar::Min<SReal>;
             }
-            // No parallelization here because AABB objects are supposed to be created per thread anyways.
-            // A desperate attempt to ask for simdization. The data layout of coords is wrong, so AVX will be useful only for AMB_DIM >=4. Nonetheless SSE instructs could be used for AMB_DIM = 2 and AMB_DIM = 3...
-
-            for( Int i = begin; i < end; ++i )
+            
+            if( thread_count <= 1 )
             {
-                P.SetPointer( P_serialized, i );
-                P.BoxMinMax( box_min, box_max );
+                for( Int i = begin; i < end; ++i )
+                {
+                    P.SetPointer( P_serialized, i );
+                    P.BoxMinMax( &lower[0], &upper[0] );
+                }
             }
-
-            r2 = Scalar::Zero<SReal>;
+            else
+            {
+                std::vector<std::array<SReal,AMB_DIM>> thread_lower ( thread_count );
+                std::vector<std::array<SReal,AMB_DIM>> thread_upper ( thread_count );
+                
+                ParallelDo(
+                    [&,this]( const Int thread )
+                    {
+                        std::shared_ptr<PolytopeBase<AMB_DIM,Real,Int,SReal>> Q = P.Clone();
+                        
+                        std::array<SReal,AMB_DIM> L;
+                        std::array<SReal,AMB_DIM> U;
+                        
+                        for( Int k = 0; k < AMB_DIM; ++k )
+                        {
+                            L[k] = Scalar::Max<SReal>;
+                            U[k] = Scalar::Min<SReal>;
+                        }
+                        
+                        const Int i_begin = begin + JobPointer( end - begin, thread_count, thread    );
+                        const Int i_end   = begin + JobPointer( end - begin, thread_count, thread +1 );
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            Q->SetPointer( P_serialized, i );
+                            Q->BoxMinMax( &L[0], &U[0] );
+                        }
+                        
+                        thread_lower[thread] = L;
+                        thread_upper[thread] = U;
+//                        copy_buffer<AMB_DIM>( &L[0], &thread_lower[thread][0] );
+//                        copy_buffer<AMB_DIM>( &U[0], &thread_upper[thread][0] );
+                        
+                    },
+                    thread_count
+                );
+                
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+                    for( Int k = 0; k < AMB_DIM; ++k )
+                    {
+                        lower[k] = std::min( lower[k], thread_lower[thread][k] );
+                        upper[k] = std::max( upper[k], thread_upper[thread][k] );
+                    }
+                }
+            }
+            
+            SReal r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (upper[k] - lower[k]);
                 r2 += diff * diff;
 
                 // adding half the edge length to obtain the k-th coordinate of the center
-                box_min[k] += diff;
+                lower[k] += diff;
                 // storing half the edge length in the designated storage.
-                box_max[k]  = diff;
+                upper[k]  = diff;
             }
+            
+            serialized_data[0] = r2;
+            copy_buffer<AMB_DIM>( &lower[0], &serialized_data[1          ] );
+            copy_buffer<AMB_DIM>( &upper[0], &serialized_data[1 + AMB_DIM] );
+            
 //            ptoc(ClassName()+"::FromPrimitives (PolytopeBase)");
         }
         
@@ -183,47 +232,110 @@ namespace GJK
         {
 //            ptic(ClassName()+"::FromPrimitives (PrimitiveSerialized)");
 
-            mref<SReal> r2 = serialized_data[0];
+            std::array<SReal,AMB_DIM> lower;
+            std::array<SReal,AMB_DIM> upper;
             
-            // Abusing serialized_data temporily as working space.
-            mptr<SReal> box_min = serialized_data + 1;
-            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
-        
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                box_min[k] = std::numeric_limits<SReal>::max();
-                box_max[k] = std::numeric_limits<SReal>::lowest();
+                lower[k] = Scalar::Max<SReal>;
+                upper[k] = Scalar::Min<SReal>;
             }
-            
-            // TODO: Check whether reversing this loop would be helpful.
-            // TODO: Can this loop be parallelized?
-            for( Int i = begin; i < end; ++i )
+
+
+            if( thread_count <= 1 )
             {
-                P.SetPointer( P_serialized, i );
-                
-                for( Int j = 0; j < AMB_DIM; ++j )
+                for( Int i = begin; i < end; ++i )
                 {
-                    Real min_val;
-                    Real max_val;
-                    
-                    P.MinMaxSupportValue( &id_matrix[j][0], min_val, max_val );
-                    box_min[j] = Min( box_min[j], static_cast<SReal>(min_val) );
-                    box_max[j] = Max( box_max[j], static_cast<SReal>(max_val) );
+                    P.SetPointer( P_serialized, i );
+
+                    for( Int j = 0; j < AMB_DIM; ++j )
+                    {
+                        Real min_val;
+                        Real max_val;
+
+                        P.MinMaxSupportValue( &id_matrix[j][0], min_val, max_val );
+
+                        lower[j] = Min( lower[j], static_cast<SReal>(min_val) );
+                        upper[j] = Max( upper[j], static_cast<SReal>(max_val) );
+                    }
+                }
+            }
+            else
+            {
+                std::vector<std::array<SReal,AMB_DIM>> thread_lower ( thread_count );
+                std::vector<std::array<SReal,AMB_DIM>> thread_upper ( thread_count );
+
+                ParallelDo(
+                    [&,this]( const Int thread )
+                    {
+                        const Int i_begin = begin + JobPointer( end - begin, thread_count, thread    );
+                        const Int i_end   = begin + JobPointer( end - begin, thread_count, thread +1 );
+
+//                        print( ToString(thread) + " -> { " + ToString(i_begin) + ", " + ToString(i_end) + " }" );
+
+                        std::shared_ptr<PrimitiveSerialized<AMB_DIM,Real,Int,SReal>> Q = P.Clone();
+
+                        std::array<SReal,AMB_DIM> L;
+                        std::array<SReal,AMB_DIM> U;
+                        
+                        for( Int k = 0; k < AMB_DIM; ++k )
+                        {
+                            L[k] = Scalar::Max<SReal>;
+                            U[k] = Scalar::Min<SReal>;
+                        }
+
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            Q->SetPointer( P_serialized, i );
+
+                            for( Int j = 0; j < AMB_DIM; ++j )
+                            {
+                                Real min_val;
+                                Real max_val;
+
+                                Q->MinMaxSupportValue( &id_matrix[j][0], min_val, max_val );
+
+                                L[j] = Min( L[j], static_cast<SReal>(min_val) );
+                                U[j] = Max( U[j], static_cast<SReal>(max_val) );
+                            }
+                        }
+
+                        thread_lower[thread] = L;
+                        thread_upper[thread] = U;
+                        
+//                        copy_buffer<AMB_DIM>( &L[0], &thread_lower[thread][0] );
+//                        copy_buffer<AMB_DIM>( &U[0], &thread_upper[thread][0] );
+
+                    },
+                    thread_count
+                );
+
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+                    for( Int k = 0; k < AMB_DIM; ++k )
+                    {
+                        lower[k] = std::min( lower[k], thread_lower[thread][k] );
+                        upper[k] = std::max( upper[k], thread_upper[thread][k] );
+                    }
                 }
             }
 
-            r2 = Scalar::Zero<SReal>;
+            SReal r2 = Scalar::Zero<SReal>;
 
             for( Int k = 0; k < AMB_DIM; ++k )
             {
-                const SReal diff = Scalar::Half<SReal> * (box_max[k] - box_min[k]);
+                const SReal diff = Scalar::Half<SReal> * (upper[k] - lower[k]);
                 r2 += diff * diff;
                 
                 // adding half the edge length to obtain the k-th coordinate of the center
-                box_min[k] += diff;
+                lower[k] += diff;
                 // storing half the edge length in the designated storage.
-                box_max[k]  = diff;
+                upper[k]  = diff;
             }
+            
+            serialized_data[0] = r2;
+            copy_buffer<AMB_DIM>( &lower[0], &serialized_data[1          ] );
+            copy_buffer<AMB_DIM>( &upper[0], &serialized_data[1 + AMB_DIM] );
             
 //            ptoc(ClassName()+"::FromPrimitives (PrimitiveSerialized)");
         }

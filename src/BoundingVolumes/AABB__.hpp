@@ -130,7 +130,7 @@ namespace GJK
             mptr<SReal> P_serialized,                      // serialized data of primitives
             const Int begin,                               // which _P_rimitives are in question
             const Int end,                                 // which _P_rimitives are in question
-            Int thread_count = 1                           // how many threads to utilize
+            const Int thread_count = 1                     // how many threads to utilize
         ) const
         {
 //            ptic(ClassName()+"::FromPrimitives (PolytopeBase)");
@@ -138,11 +138,56 @@ namespace GJK
             lower.Fill( std::numeric_limits<SReal>::max()    );
             upper.Fill( std::numeric_limits<SReal>::lowest() );
             
-            // TODO: Parallelize this!
-            for( Int i = begin; i < end; ++i )
+            if( thread_count <= 1 )
             {
-                P.SetPointer( P_serialized, i );
-                P.BoxMinMax( lower.data(), upper.data() );
+                // TODO: Parallelize this!
+                for( Int i = begin; i < end; ++i )
+                {
+                    P.SetPointer( P_serialized, i );
+                    P.BoxMinMax( lower.data(), upper.data() );
+                }
+            }
+            else
+            {
+                dump(thread_count);
+                
+                std::vector<Vector_T> thread_lower ( thread_count );
+                std::vector<Vector_T> thread_upper ( thread_count );
+                
+                ParallelDo(
+                    [&,this]( const Int thread )
+                    {
+                        PolytopeBase<AMB_DIM,Real,Int,SReal> Q = P.Clone();
+                        
+                        Vector_T L;
+                        Vector_T U;
+                        
+                        L.Fill( std::numeric_limits<SReal>::max()    );
+                        U.Fill( std::numeric_limits<SReal>::lowest() );
+                        
+                        const Int i_begin = begin + JobPointer( end - begin, thread_count, thread    );
+                        const Int i_end   = begin + JobPointer( end - begin, thread_count, thread +1 );
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            Q.SetPointer( P_serialized, i );
+                            Q.BoxMinMax( L.data(), U.data() );
+                        }
+                        
+                        L.Write( thread_lower.data() );
+                        U.Write( thread_upper.data() );
+                    },
+                    thread_count
+                );
+            }
+            
+            for( Int thread = 0; thread < thread_count; ++thread )
+            {
+                for( Int k = 0; k < AMB_DIM; ++k )
+                {
+                    lower[k] = std::min( thread_lower[thread][k], lower[k] );
+                    upper[k] = std::max( thread_upper[thread][k], upper[k] );
+                }
             }
 
             lower.Write( &serialized_data[1          ]);
