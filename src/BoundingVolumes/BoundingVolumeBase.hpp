@@ -12,7 +12,7 @@ namespace GJK
     {
     public:
         
-        CLASS() :BASE()
+        CLASS() : BASE()
         {}
         
         // Copy constructor

@@ -77,10 +77,10 @@ namespace GJK
             
             // Compute bounding volume of left child.
             SetPointer( L_serialized, L_ID );
-            FromPrimitives( P, P_serialized,   begin, split_index,   thread_count );
+            FromPrimitives( P, P_serialized,   begin,       split_index, thread_count );
             // Compute bounding volume of right child.
             SetPointer( R_serialized, R_ID );
-            FromPrimitives( P, P_serialized,   split_index, end,   thread_count );
+            FromPrimitives( P, P_serialized,   split_index, end,         thread_count );
             
 //            ptoc(ClassName()+"::Split");
             
