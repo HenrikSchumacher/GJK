@@ -50,7 +50,7 @@ namespace GJK
         }
         
         // Move constructor
-        CLASS( CLASS && other ) noexcept  : BASE( other )
+        CLASS( CLASS && other ) noexcept : BASE( other )
         {
             Initialize();
         }
@@ -85,8 +85,8 @@ namespace GJK
             mref<SReal> r2 = serialized_data[0];
             
             // Abusing serialized_data temporily as working space.
-                  mptr<SReal> box_min = serialized_data + 1;
-                  mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
+            mptr<SReal> box_min = serialized_data + 1;
+            mptr<SReal> box_max = serialized_data + 1 + AMB_DIM;
             
             cptr<SReal> coords = coords_in;
             
@@ -160,7 +160,7 @@ namespace GJK
                 std::vector<std::array<SReal,AMB_DIM>> thread_upper ( thread_count );
                 
                 ParallelDo(
-                    [&,this]( const Int thread )
+                    [&]( const Int thread )
                     {
                         std::shared_ptr<PolytopeBase<AMB_DIM,Real,Int,SReal>> Q = P.Clone();
                         
@@ -266,7 +266,7 @@ namespace GJK
                 std::vector<std::array<SReal,AMB_DIM>> thread_upper ( thread_count );
 
                 ParallelDo(
-                    [&,this]( const Int thread )
+                    [&]( const Int thread )
                     {
                         const Int i_begin = begin + JobPointer( end - begin, thread_count, thread    );
                         const Int i_end   = begin + JobPointer( end - begin, thread_count, thread +1 );
